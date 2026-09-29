@@ -41,7 +41,7 @@ export type DetailsPanel =
   | "mapLayer"
   | "feature"
   | "tacticalGraphic"
-  | "airspace"
+  | "operationalObject"
   | "referenceFeature"
   | "scenario";
 

@@ -24,7 +24,7 @@ const DEMO_SCENARIOS = [
     name: "ROZ ALFA",
     id: "roz-alfa",
     summary:
-      "One restricted operating zone, 1200Z–1430Z. The clock starts at 1100Z. Click the timeline events to show and hide it.",
+      "ROZ ALFA, 1200Z–1430Z, required by PACKAGE-21. The clock starts at 1100Z. Click the polygon, then open the package from Required by.",
     imageUrl: "/favicon.svg",
   },
 ];

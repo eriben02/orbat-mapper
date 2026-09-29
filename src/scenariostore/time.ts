@@ -30,7 +30,7 @@ import {
   projectScenarioLayerItemStateAt,
 } from "@/types/scenarioLayerItems";
 import { isScenarioOverlayLayer } from "@/types/scenarioStackLayers";
-import { applyAirspaceProjection } from "@/scenariostore/operationalObjects";
+import { applyOperationalProjection } from "@/scenariostore/operationalObjects";
 
 export type GoToScenarioEventOptions = {
   silent?: boolean;
@@ -179,7 +179,7 @@ export function useScenarioTime(store: NewScenarioStore) {
       for (const id of state.operationalObjectIds) {
         const object = state.operationalObjectMap[id];
         if (!object) continue;
-        applyAirspaceProjection(object, timestamp);
+        applyOperationalProjection(object, timestamp);
       }
       state.operationalStateCounter++;
     }

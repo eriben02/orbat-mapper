@@ -53,7 +53,7 @@ import {
   isScenarioOverlayLayer,
   isScenarioReferenceLayer,
 } from "@/types/scenarioStackLayers";
-import type { AirspaceControlMeasure } from "@/types/operationalModels";
+import type { OperationalObject } from "@/types/operationalModels";
 
 export interface CreateEmptyScenarioOptions {
   id?: string;
@@ -226,12 +226,12 @@ function getPersonnel(state: ScenarioState): PersonnelData[] {
   }));
 }
 
-function getOperationalObjects(state: ScenarioState): AirspaceControlMeasure[] {
-  const objects: AirspaceControlMeasure[] = [];
+function getOperationalObjects(state: ScenarioState): OperationalObject[] {
+  const objects: OperationalObject[] = [];
   for (const id of state.operationalObjectIds) {
     const object = state.operationalObjectMap[id];
     if (!object) continue;
-    const stored: AirspaceControlMeasure = { ...object };
+    const stored: OperationalObject = { ...object };
     delete stored._state;
     delete stored._hidden;
     objects.push(stored);

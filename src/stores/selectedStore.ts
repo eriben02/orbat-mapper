@@ -152,7 +152,7 @@ const selectedOperationalObjectId = computed({
 });
 
 const activeDetailsPanel = computed((): DetailsPanel | null | undefined => {
-  if (selectedOperationalObjectIdRef.value) return "airspace";
+  if (selectedOperationalObjectIdRef.value) return "operationalObject";
   if (selectedFeatureIds.value.size) {
     // Only when *every* selected id is a control measure. A mixed selection falls
     // through to the feature panel, which hides the sections that cannot describe a

@@ -7,7 +7,7 @@
     "lastModifiedDate": "2026-09-29T20:00:00.000Z"
   },
   "name": "ROZ ALFA",
-  "description": "Airspace control measure demo. The clock starts at 1100Z, so ROZ ALFA is hidden. Click the timeline events: 1200Z shows it, 1300Z keeps it, 1431Z hides it. Select the polygon to read its metadata.",
+  "description": "Airspace control measure demo. The clock starts at 1100Z, so ROZ ALFA is hidden. Click the timeline events: 1200Z shows it, 1300Z keeps it, 1431Z hides it. Select the polygon, then open PACKAGE-21 from Required by. PACKAGE-21 requires ROZ ALFA; that inverse is not stored on the zone.",
   "startTime": "2026-01-15T11:00:00Z",
   "timeZone": "UTC",
   "symbologyStandard": "2525e",
@@ -70,12 +70,33 @@
       "purpose": "UAV operations",
       "relations": [
         { "type": "source", "target": { "kind": "acmreq", "id": "ACMREQ-047" } },
-        { "type": "authority", "target": { "kind": "authority", "id": "JACC" } },
-        { "type": "supports", "target": { "kind": "package", "id": "PACKAGE-21" } }
+        { "type": "authority", "target": { "kind": "authority", "id": "JACC" } }
       ],
       "state": [
         {
           "id": "stRozAlfaPlanned001",
+          "t": "2026-01-15T12:00:00Z",
+          "patch": { "status": "PLANNED" }
+        }
+      ]
+    },
+    {
+      "id": "pK21QvR8sT0uYxZ4aB7cD",
+      "kind": "package",
+      "designator": "PACKAGE-21",
+      "name": "UAV Support Package",
+      "validFrom": "2026-01-15T12:00:00Z",
+      "validUntil": "2026-01-15T16:00:00Z",
+      "status": "PLANNED",
+      "relations": [
+        {
+          "type": "requires",
+          "target": { "kind": "airspace", "id": "7N3kP0wQvR2sT8uYxZ4aB" }
+        }
+      ],
+      "state": [
+        {
+          "id": "stPackage21Planned01",
           "t": "2026-01-15T12:00:00Z",
           "patch": { "status": "PLANNED" }
         }

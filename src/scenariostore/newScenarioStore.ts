@@ -67,7 +67,7 @@ import {
   isScenarioOverlayLayer,
   isScenarioReferenceLayer,
 } from "@/types/scenarioStackLayers";
-import type { AirspaceControlMeasure } from "@/types/operationalModels";
+import type { OperationalObject } from "@/types/operationalModels";
 import { operationalObjectToInternal } from "@/scenariostore/operationalObjects";
 
 export interface ScenarioState {
@@ -104,7 +104,7 @@ export interface ScenarioState {
   symbolFillColorMap: Record<string, NSymbolFillColor>;
   customSymbolMap: Record<string, CustomSymbol>;
   operationalObjectIds: EntityId[];
-  operationalObjectMap: Record<EntityId, AirspaceControlMeasure>;
+  operationalObjectMap: Record<EntityId, OperationalObject>;
   operationalStateCounter: number;
   boundingBox: BBox | null;
 }
@@ -138,7 +138,7 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
   const supplyUoMMap: Record<string, NSupplyUoM> = {};
   const symbolFillColorMap: Record<string, NSymbolFillColor> = {};
   const customSymbolMap: Record<string, CustomSymbol> = {};
-  const operationalObjectMap: Record<EntityId, AirspaceControlMeasure> = {};
+  const operationalObjectMap: Record<EntityId, OperationalObject> = {};
   const operationalObjectIds: EntityId[] = [];
   const tempSymbolFillColors = new Set<string>();
   const tempEquipmentIdMap: Record<string, string> = {};
@@ -198,7 +198,6 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
   });
 
   for (const object of scenario.operationalObjects ?? []) {
-    if (object.kind !== "airspace") continue;
     const internal = operationalObjectToInternal(object);
     operationalObjectMap[internal.id] = internal;
     operationalObjectIds.push(internal.id);

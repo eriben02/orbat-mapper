@@ -1,5 +1,5 @@
 import type { Feature, FeatureCollection, Polygon } from "geojson";
-import type { AirspaceControlMeasure } from "@/types/operationalModels";
+import type { OperationalObject } from "@/types/operationalModels";
 
 export interface AirspaceRenderProperties {
   objectId: string;
@@ -21,7 +21,7 @@ export interface AirspaceRenderPlanOptions {
  * Nothing in this function writes back to the store or to a layer item.
  */
 export function buildAirspaceRenderPlan(
-  objects: readonly AirspaceControlMeasure[],
+  objects: readonly OperationalObject[],
   options: AirspaceRenderPlanOptions,
 ): FeatureCollection<Polygon, AirspaceRenderProperties> {
   const features: Feature<Polygon, AirspaceRenderProperties>[] = [];
