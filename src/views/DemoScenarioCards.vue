@@ -20,6 +20,13 @@ const DEMO_SCENARIOS = [
     imageUrl:
       "/scenarios/images/Norwegian_Army_Colt_heavy_machine_gun_at_the_Narvik_front.jpg",
   },
+  {
+    name: "ROZ ALFA",
+    id: "roz-alfa",
+    summary:
+      "One restricted operating zone, 1200Z–1430Z. The clock starts at 1100Z. Click the timeline events to show and hide it.",
+    imageUrl: "/favicon.svg",
+  },
 ];
 
 // One `<li>` for each demo, thus the list items stay in the grid of the parent `<ul>`.

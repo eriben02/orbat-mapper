@@ -1,0 +1,94 @@
+{
+  "id": "demo-roz-alfa",
+  "type": "ORBAT-mapper",
+  "version": "3.5.0",
+  "meta": {
+    "createdDate": "2026-09-29T20:00:00.000Z",
+    "lastModifiedDate": "2026-09-29T20:00:00.000Z"
+  },
+  "name": "ROZ ALFA",
+  "description": "Airspace control measure demo. The clock starts at 1100Z, so ROZ ALFA is hidden. Click the timeline events: 1200Z shows it, 1300Z keeps it, 1431Z hides it. Select the polygon to read its metadata.",
+  "startTime": "2026-01-15T11:00:00Z",
+  "timeZone": "UTC",
+  "symbologyStandard": "2525e",
+  "sides": [],
+  "events": [
+    {
+      "id": "evtRozAlfa1100Z00001",
+      "title": "1100Z",
+      "startTime": "2026-01-15T11:00:00Z"
+    },
+    {
+      "id": "evtRozAlfa1200Z00001",
+      "title": "1200Z",
+      "startTime": "2026-01-15T12:00:00Z"
+    },
+    {
+      "id": "evtRozAlfa1300Z00001",
+      "title": "1300Z",
+      "startTime": "2026-01-15T13:00:00Z"
+    },
+    {
+      "id": "evtRozAlfa1431Z00001",
+      "title": "1431Z",
+      "startTime": "2026-01-15T14:31:00Z"
+    }
+  ],
+  "layerStack": [
+    {
+      "id": "lyrRozAlfaFeatures01",
+      "kind": "overlay",
+      "name": "Features",
+      "items": []
+    }
+  ],
+  "operationalObjects": [
+    {
+      "id": "7N3kP0wQvR2sT8uYxZ4aB",
+      "kind": "airspace",
+      "designator": "ROZ ALFA",
+      "type": "ROZ",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [14.5, 57.5],
+            [16.5, 57.5],
+            [16.5, 58.8],
+            [14.5, 58.8],
+            [14.5, 57.5]
+          ]
+        ]
+      },
+      "vertical": {
+        "lower": { "system": "FL", "value": 100 },
+        "upper": { "system": "FL", "value": 280 }
+      },
+      "validFrom": "2026-01-15T12:00:00Z",
+      "validUntil": "2026-01-15T14:30:00Z",
+      "status": "PLANNED",
+      "purpose": "UAV operations",
+      "relations": [
+        { "type": "source", "target": { "kind": "acmreq", "id": "ACMREQ-047" } },
+        { "type": "authority", "target": { "kind": "authority", "id": "JACC" } },
+        { "type": "supports", "target": { "kind": "package", "id": "PACKAGE-21" } }
+      ],
+      "state": [
+        {
+          "id": "stRozAlfaPlanned001",
+          "t": "2026-01-15T12:00:00Z",
+          "patch": { "status": "PLANNED" }
+        }
+      ]
+    }
+  ],
+  "settings": {
+    "rangeRingGroups": [],
+    "statuses": [],
+    "supplyClasses": [],
+    "supplyUoMs": [],
+    "symbolFillColors": [],
+    "map": { "baseMapId": "osm" },
+    "boundingBox": [14.2, 57.2, 16.8, 59.1]
+  }
+}

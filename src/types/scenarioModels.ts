@@ -18,6 +18,7 @@ import type { SymbolFillColor } from "@/config/colors.ts";
 import type { ScenarioStackLayer } from "@/types/scenarioStackLayers";
 import type { ScenarioLayerItemsLayer } from "@/types/scenarioLayerItems";
 import type { ScenarioMapLayer } from "./scenarioGeoModels";
+import type { OperationalObject } from "@/types/operationalModels";
 
 export interface State extends Partial<ScenarioEventDescription> {
   id: string;
@@ -267,6 +268,7 @@ export interface ScenarioInfo {
 
 export type SymbologyStandard = "2525d" | "2525e" | "app6d";
 export type ScenarioVersion =
+  | "3.5.0"
   | "3.4.0"
   | "3.3.0"
   | "3.2.0"
@@ -390,6 +392,11 @@ export interface Scenario extends ScenarioInfo {
   sides: Side[];
   events: ScenarioEvent[];
   layerStack: ScenarioStackLayer[];
+  /**
+   * Operational objects. The map projects these; it does not own them.
+   * Absent on scenarios written before 3.5.0.
+   */
+  operationalObjects?: OperationalObject[];
   /** @deprecated load-only compatibility shape */
   layers?: ScenarioLayerItemsLayer[];
   /** @deprecated load-only compatibility shape */

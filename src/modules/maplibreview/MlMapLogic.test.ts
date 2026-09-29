@@ -1661,6 +1661,10 @@ describe("MlMapLogic", () => {
    * basemap and the whole tactical-draw stack included — only for the collector to
    * discard everything but these four families. It also surfaced as a warning from the
    * adapter's per-feature style expressions on every mouse move.
+   *
+   * Airspace is a second scoped query, not part of that filter. An empty hover still
+   * asks for it, so it is the last call; the interactive query is the one that names
+   * the unit layer.
    */
   it("queries only the layers whose hits it keeps", () => {
     const mockMap = createMockMap();
@@ -1679,12 +1683,107 @@ describe("MlMapLogic", () => {
 
     mockMap.emit("mousemove", { point: { x: 12, y: 20 }, originalEvent: {} });
 
-    const [, options] = mockMap.map.queryRenderedFeatures.mock.calls.at(-1)!;
-    expect(options?.layers).toEqual([
-      "unitLayer",
-      "scenario-feature-layer-1-line",
-      "scenario-kml-layer-kml-1-point-circle",
+    const calls = mockMap.map.queryRenderedFeatures.mock.calls as [
+      unknown,
+      { layers?: string[] } | undefined,
+    ][];
+    const interactive = calls.filter((call) => call[1]?.layers?.includes("unitLayer"));
+    expect(interactive.length).toBeGreaterThan(0);
+    for (const call of interactive) {
+      expect(call[1]?.layers).toEqual([
+        "unitLayer",
+        "scenario-feature-layer-1-line",
+        "scenario-kml-layer-kml-1-point-circle",
+      ]);
+    }
+    const airspace = calls.filter((call) => call[1]?.layers?.includes("airspace-fill"));
+    expect(airspace).toHaveLength(1);
+    expect(airspace[0]?.[1]?.layers).toEqual([
+      "airspace-fill",
+      "airspace-line",
+      "airspace-label",
     ]);
+    for (const call of calls) {
+      const layers = call[1]?.layers ?? [];
+      expect(layers).not.toContain("background");
+      expect(layers).not.toContain("positron-water");
+      expect(layers).not.toContain("tactical-draw-graphics-group-1-circle");
+    }
+  });
+
+  it("does not query airspace while a unit is the top hit", () => {
+    const mockMap = createMockMap();
+    mountMlMapLogic({
+      mockMap,
+      activeScenario: createHoverScenario(() => ({ layerItem: undefined })),
+    });
+    mockMap.map.queryRenderedFeatures.mockImplementation(
+      (_geometry: unknown, options: { layers?: string[] } | undefined) => {
+        const layers = options?.layers ?? [];
+        if (layers.includes("airspace-fill")) {
+          return [
+            {
+              layer: { id: "airspace-fill" },
+              properties: { objectId: "roz-1" },
+            },
+          ];
+        }
+        if (layers.includes("unitLayer")) {
+          return [{ layer: { id: "unitLayer" }, properties: { id: "unit-1" } }];
+        }
+        return [];
+      },
+    );
+
+    mockMap.emit("mousemove", { point: { x: 12, y: 20 }, originalEvent: {} });
+
+    const airspace = (
+      mockMap.map.queryRenderedFeatures.mock.calls as [
+        unknown,
+        { layers?: string[] } | undefined,
+      ][]
+    ).filter((call) => call[1]?.layers?.includes("airspace-fill"));
+    expect(airspace).toHaveLength(0);
+    expect(mockMap.canvas.style.cursor).toBe("pointer");
+  });
+
+  it("selects an airspace control measure instead of the plain feature under it", () => {
+    const mockMap = createMockMap();
+    mountMlMapLogic({
+      mockMap,
+      activeScenario: createHoverScenario(() => ({ layerItem: undefined })),
+    });
+    mockMap.map.queryRenderedFeatures.mockImplementation(
+      (_geometry: unknown, options: { layers?: string[] } | undefined) => {
+        const layers = options?.layers ?? [];
+        if (layers.includes("airspace-fill")) {
+          return [
+            {
+              layer: { id: "airspace-fill" },
+              properties: { objectId: "roz-1" },
+            },
+          ];
+        }
+        if (layers.includes("scenario-feature-layer-1-line")) {
+          return [
+            {
+              layer: { id: "scenario-feature-layer-1-line" },
+              properties: { featureId: "feature-1", layerId: "layer-1" },
+            },
+          ];
+        }
+        return [];
+      },
+    );
+
+    mockMap.emit("click", {
+      point: { x: 12, y: 20 },
+      originalEvent: { shiftKey: false },
+    });
+
+    expect(useSelectedItems().selectedOperationalObjectId.value).toBe("roz-1");
+    expect(useSelectedItems().selectedFeatureIds.value.size).toBe(0);
+    useSelectedItems().clear();
   });
 
   it("opens rendered KML features as reference feature details on click", () => {

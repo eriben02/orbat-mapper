@@ -3,6 +3,7 @@ import { computed } from "vue";
 import { useSelectedItems } from "@/stores/selectedStore";
 import ScenarioFeatureDetails from "@/modules/scenarioeditor/ScenarioFeatureDetails.vue";
 import ControlMeasureDetails from "@/modules/scenarioeditor/ControlMeasureDetails.vue";
+import AirspaceDetails from "@/modules/scenarioeditor/AirspaceDetails.vue";
 import UnitDetails from "@/modules/scenarioeditor/UnitDetails.vue";
 import ScenarioEventDetails from "@/modules/scenarioeditor/ScenarioEventDetails.vue";
 import ScenarioMapLayerDetails from "@/modules/scenarioeditor/ScenarioMapLayerDetails.vue";
@@ -40,6 +41,10 @@ const showRouteContent = computed(() => toolbarStore.currentToolbar === "route")
     @clear-current-leg="routeDetailsPanel.clearCurrentLeg()"
     @finish="routeDetailsPanel.finishRoute()"
     @end-drawing="routeDetailsPanel.endRouting()"
+  />
+  <AirspaceDetails
+    v-else-if="activeDetailsPanel === 'airspace'"
+    :class="props.contentClass"
   />
   <ControlMeasureDetails
     v-else-if="activeDetailsPanel === 'tacticalGraphic'"

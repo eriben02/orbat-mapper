@@ -17,6 +17,7 @@ const activeReferenceFeatureRef = ref<ReferenceFeatureSelection | null>(null);
 
 const selectedScenarioEventIds = ref<Set<EntityId>>(new Set());
 const activeScenarioEventIdRef = ref<EntityId | undefined | null>(null);
+const selectedOperationalObjectIdRef = ref<EntityId | null>(null);
 const showScenarioInfo = ref(false);
 watch(
   selectedUnitIds.value,
@@ -113,6 +114,7 @@ function clear() {
   if (selectedScenarioEventIds.value.size > 0) selectedScenarioEventIds.value.clear();
   if (selectedMapLayerIds.value.size > 0) selectedMapLayerIds.value.clear();
   activeReferenceFeatureRef.value = null;
+  selectedOperationalObjectIdRef.value = null;
   orbatRevealUnitId.value = null;
   showScenarioInfo.value = false;
 }
@@ -141,7 +143,16 @@ export function setTacticalGraphicPredicate(predicate: TacticalGraphicPredicate)
   };
 }
 
+const selectedOperationalObjectId = computed({
+  get: () => selectedOperationalObjectIdRef.value,
+  set: (id: EntityId | null) => {
+    if (id) clear();
+    selectedOperationalObjectIdRef.value = id;
+  },
+});
+
 const activeDetailsPanel = computed((): DetailsPanel | null | undefined => {
+  if (selectedOperationalObjectIdRef.value) return "airspace";
   if (selectedFeatureIds.value.size) {
     // Only when *every* selected id is a control measure. A mixed selection falls
     // through to the feature panel, which hides the sections that cannot describe a
@@ -183,6 +194,7 @@ export function useSelectedItems() {
     selectedMapLayerIds,
     activeMapLayerId,
     activeReferenceFeature,
+    selectedOperationalObjectId,
     showScenarioInfo,
     activeDetailsPanel,
     clear,

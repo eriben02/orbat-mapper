@@ -31,6 +31,7 @@ import {
   getLayerIdFromRenderedFeature,
   isManagedScenarioFeatureLayerId,
 } from "@/modules/maplibreview/maplibreScenarioFeatures";
+import { buildAirspaceRenderPlan } from "@/modules/maplibreview/airspaceRenderPlan";
 import {
   isMapLibreKmlRenderedLayerId,
   toReferenceFeatureSelection,
@@ -142,6 +143,7 @@ const { onUnitSelectHook, onFeatureSelectHook, onScenarioActionHook } =
 const {
   selectedFeatureIds,
   selectedUnitIds,
+  selectedOperationalObjectId,
   activeReferenceFeature,
   clear: clearSelectedItems,
 } = useSelectedItems();
@@ -455,7 +457,82 @@ function buildCustomSymbolImageData(
   });
 }
 
+const AIRSPACE_SOURCE_ID = "airspaceSource";
+const AIRSPACE_FILL_LAYER_ID = "airspace-fill";
+const AIRSPACE_LINE_LAYER_ID = "airspace-line";
+const AIRSPACE_LABEL_LAYER_ID = "airspace-label";
+const AIRSPACE_LAYER_IDS = [
+  AIRSPACE_FILL_LAYER_ID,
+  AIRSPACE_LINE_LAYER_ID,
+  AIRSPACE_LABEL_LAYER_ID,
+];
+
+function setupAirspaceLayers() {
+  if (mlMap.getSource(AIRSPACE_SOURCE_ID)) return;
+  mlMap.addSource(AIRSPACE_SOURCE_ID, {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+  mlMap.addLayer({
+    id: AIRSPACE_FILL_LAYER_ID,
+    type: "fill",
+    source: AIRSPACE_SOURCE_ID,
+    paint: {
+      "fill-color": ["case", ["get", "selected"], "#b45309", "#0369a1"],
+      "fill-opacity": 0.28,
+    },
+  });
+  mlMap.addLayer({
+    id: AIRSPACE_LINE_LAYER_ID,
+    type: "line",
+    source: AIRSPACE_SOURCE_ID,
+    paint: {
+      "line-color": ["case", ["get", "selected"], "#b45309", "#075985"],
+      "line-width": ["case", ["get", "selected"], 3, 2],
+      "line-dasharray": [2, 1.5],
+    },
+  });
+  mlMap.addLayer({
+    id: AIRSPACE_LABEL_LAYER_ID,
+    type: "symbol",
+    source: AIRSPACE_SOURCE_ID,
+    layout: {
+      "text-field": ["get", "designator"],
+      "text-font": ["Noto Sans Italic"],
+      "text-size": 13,
+      "text-allow-overlap": true,
+    },
+    paint: {
+      "text-color": "#0c4a6e",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.5,
+    },
+  });
+}
+
+function syncAirspace() {
+  const source = mlMap.getSource(AIRSPACE_SOURCE_ID) as GeoJSONSource | undefined;
+  if (!source) return;
+  const objects = Object.values(activeScenario.store.state.operationalObjectMap ?? {});
+  source.setData(
+    buildAirspaceRenderPlan(objects, {
+      filterVisible: true,
+      selectedIds: new Set(
+        selectedOperationalObjectId.value ? [selectedOperationalObjectId.value] : [],
+      ),
+    }),
+  );
+}
+
+function pickAirspaceAt(point: PointLike) {
+  if (!mlMap.getLayer(AIRSPACE_FILL_LAYER_ID)) return;
+  const hits = mlMap.queryRenderedFeatures(point, { layers: AIRSPACE_LAYER_IDS });
+  const objectId = hits[0]?.properties?.objectId;
+  return objectId ? String(objectId) : undefined;
+}
+
 function setupMapLayers() {
+  setupAirspaceLayers();
   !mlMap.getSource("unitSource") &&
     mlMap.addSource("unitSource", {
       type: "geojson",
@@ -562,6 +639,7 @@ function onStyleLoad() {
     doClearCache: false,
     filterVisible: !doNotFilterLayers.value,
   });
+  syncAirspace();
   shouldCenterOnNextStyleLoad = false;
 }
 
@@ -830,6 +908,9 @@ function getShiftClickTarget(e: MouseEvent): ShiftClickTarget | undefined {
       : undefined;
   }
 
+  // An airspace fill must not shift-select the plain shape underneath it.
+  if (pickAirspaceAt(pixel)) return;
+
   if (!topHit) return;
 
   if (isManagedScenarioFeatureLayerId(topHit.layer.id)) {
@@ -949,6 +1030,14 @@ function onMapClick(e: MapMouseEvent) {
   // Keep move mode's unit/empty-map behavior after resolving control measures.
   if (moveUnitEnabled.value) return;
 
+  const airspaceId = pickAirspaceAt(e.point);
+  if (airspaceId) {
+    if (!featureSelectEnabled.value) return;
+    if (additive) return;
+    selectedOperationalObjectId.value = airspaceId;
+    return;
+  }
+
   if (!topHit) {
     if (!additive && selectionEnabled) clearSelectedItems();
     return;
@@ -1029,6 +1118,14 @@ function onMapMouseMove(e: MapMouseEvent) {
     mlMap.getCanvas().style.cursor = tacticalHit.layer === "handles" ? "grab" : "pointer";
     // A control measure renders above the plain-feature stack, so do not show the
     // tooltip/highlight of an ordinary feature hidden underneath it.
+    updateHoveredScenarioFeatures([], e);
+    return;
+  }
+  // Units outrank the airspace fill, matching the click path. A polygon covering a
+  // formation must not hide unit hover. The window is inclusive of the exact point
+  // only; nearby plain features still hover when the pointer is outside the fill.
+  if (!(topHit && isUnitLayerId(topHit.layer.id)) && pickAirspaceAt(e.point)) {
+    mlMap.getCanvas().style.cursor = "pointer";
     updateHoveredScenarioFeatures([], e);
     return;
   }
@@ -1186,6 +1283,14 @@ watch(
     });
   },
   { immediate: true },
+);
+
+watch(
+  [
+    () => activeScenario.store.state.operationalStateCounter,
+    () => selectedOperationalObjectId.value,
+  ],
+  () => syncAirspace(),
 );
 
 watch(

@@ -7,6 +7,7 @@ import { activeScenarioKey, timeModalKey } from "@/components/injects";
 import { useScenarioMapModeController } from "@/modules/scenarioeditor/useScenarioMapModeController";
 import { useMainToolbarStore } from "@/stores/mainToolbarStore";
 import { useSelectedItems } from "@/stores/selectedStore";
+import type { TScenario } from "@/scenariostore";
 
 const Harness = defineComponent({
   setup() {
@@ -54,5 +55,35 @@ describe("useScenarioMapModeController", () => {
     });
 
     expect(wrapper.text()).toBe("open");
+  });
+
+  it("opens the details panel when an airspace control measure is selected", () => {
+    const pinia = createPinia();
+    setActivePinia(pinia);
+    useSelectedItems().selectedOperationalObjectId.value = "roz-1";
+
+    const wrapper = mount(Harness, {
+      global: {
+        plugins: [pinia],
+        provide: {
+          [activeScenarioKey as symbol]: {
+            store: { state: { currentTime: 0 } },
+            time: {
+              setCurrentTime: vi.fn(),
+              add: vi.fn(),
+              subtract: vi.fn(),
+              goToNextScenarioEvent: vi.fn(),
+              goToPrevScenarioEvent: vi.fn(),
+            },
+          } as unknown as TScenario,
+          [timeModalKey as symbol]: {
+            getModalTimestamp: vi.fn(),
+          },
+        },
+      },
+    });
+
+    expect(wrapper.text()).toBe("open");
+    useSelectedItems().clear();
   });
 });

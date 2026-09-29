@@ -53,6 +53,7 @@ import {
   isScenarioOverlayLayer,
   isScenarioReferenceLayer,
 } from "@/types/scenarioStackLayers";
+import type { AirspaceControlMeasure } from "@/types/operationalModels";
 
 export interface CreateEmptyScenarioOptions {
   id?: string;
@@ -225,6 +226,19 @@ function getPersonnel(state: ScenarioState): PersonnelData[] {
   }));
 }
 
+function getOperationalObjects(state: ScenarioState): AirspaceControlMeasure[] {
+  const objects: AirspaceControlMeasure[] = [];
+  for (const id of state.operationalObjectIds) {
+    const object = state.operationalObjectMap[id];
+    if (!object) continue;
+    const stored: AirspaceControlMeasure = { ...object };
+    delete stored._state;
+    delete stored._hidden;
+    objects.push(stored);
+  }
+  return objects;
+}
+
 function getSupplyCategories(state: ScenarioState): SupplyCategory[] {
   return Object.values(state.supplyCategoryMap).map(({ id, ...sup }) => {
     return {
@@ -342,6 +356,9 @@ export function useScenarioIO(store: ShallowRef<NewScenarioStore>) {
       equipment: getEquipment(state),
       personnel: getPersonnel(state),
       supplyCategories: getSupplyCategories(state),
+      ...(state.operationalObjectIds.length
+        ? { operationalObjects: getOperationalObjects(state) }
+        : {}),
       settings: {
         rangeRingGroups: getRangeRingGroups(state),
         statuses: getUnitStatuses(state),
@@ -672,11 +689,12 @@ export function useScenarioIO(store: ShallowRef<NewScenarioStore>) {
     return draft;
   }
 
-  async function loadDemoScenario(id: string | "falkland82" | "narvik40") {
+  async function loadDemoScenario(id: string | "falkland82" | "narvik40" | "roz-alfa") {
     isLoading.value = true;
     const idUrlMap: Record<string, string> = {
       falkland82: "/scenarios/falkland82.json",
       narvik40: "/scenarios/narvik40.json",
+      "roz-alfa": "/scenarios/roz-alfa.json",
     };
     const url = idUrlMap[id];
     if (!url) {

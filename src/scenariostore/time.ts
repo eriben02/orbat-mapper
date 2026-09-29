@@ -30,6 +30,7 @@ import {
   projectScenarioLayerItemStateAt,
 } from "@/types/scenarioLayerItems";
 import { isScenarioOverlayLayer } from "@/types/scenarioStackLayers";
+import { applyAirspaceProjection } from "@/scenariostore/operationalObjects";
 
 export type GoToScenarioEventOptions = {
   silent?: boolean;
@@ -174,6 +175,14 @@ export function useScenarioTime(store: NewScenarioStore) {
         }
       });
     });
+    if (state.operationalObjectIds.length) {
+      for (const id of state.operationalObjectIds) {
+        const object = state.operationalObjectMap[id];
+        if (!object) continue;
+        applyAirspaceProjection(object, timestamp);
+      }
+      state.operationalStateCounter++;
+    }
     state.currentTime = timestamp;
   }
 

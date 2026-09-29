@@ -27,6 +27,7 @@ export function useScenarioMapModeController(resizeMap: () => void) {
     activeMapLayerId,
     activeReferenceFeature,
     showScenarioInfo,
+    selectedOperationalObjectId,
     clear: clearSelected,
   } = useSelectedItems();
 
@@ -40,7 +41,8 @@ export function useScenarioMapModeController(resizeMap: () => void) {
       activeScenarioEventId.value ||
       activeReferenceFeature.value ||
       activeMapLayerId.value ||
-      showScenarioInfo.value,
+      showScenarioInfo.value ||
+      selectedOperationalObjectId.value,
     ),
   );
 

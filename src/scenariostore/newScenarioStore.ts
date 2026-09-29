@@ -67,6 +67,8 @@ import {
   isScenarioOverlayLayer,
   isScenarioReferenceLayer,
 } from "@/types/scenarioStackLayers";
+import type { AirspaceControlMeasure } from "@/types/operationalModels";
+import { operationalObjectToInternal } from "@/scenariostore/operationalObjects";
 
 export interface ScenarioState {
   id: EntityId;
@@ -101,6 +103,9 @@ export interface ScenarioState {
   mapSettings: MapSettings;
   symbolFillColorMap: Record<string, NSymbolFillColor>;
   customSymbolMap: Record<string, CustomSymbol>;
+  operationalObjectIds: EntityId[];
+  operationalObjectMap: Record<EntityId, AirspaceControlMeasure>;
+  operationalStateCounter: number;
   boundingBox: BBox | null;
 }
 
@@ -133,6 +138,8 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
   const supplyUoMMap: Record<string, NSupplyUoM> = {};
   const symbolFillColorMap: Record<string, NSymbolFillColor> = {};
   const customSymbolMap: Record<string, CustomSymbol> = {};
+  const operationalObjectMap: Record<EntityId, AirspaceControlMeasure> = {};
+  const operationalObjectIds: EntityId[] = [];
   const tempSymbolFillColors = new Set<string>();
   const tempEquipmentIdMap: Record<string, string> = {};
   const tempPersonnelIdMap: Record<string, string> = {};
@@ -189,6 +196,13 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
   scenario.settings?.customSymbols?.forEach((s) => {
     customSymbolMap[s.id] = s;
   });
+
+  for (const object of scenario.operationalObjects ?? []) {
+    if (object.kind !== "airspace") continue;
+    const internal = operationalObjectToInternal(object);
+    operationalObjectMap[internal.id] = internal;
+    operationalObjectIds.push(internal.id);
+  }
 
   SYMBOL_FILL_COLORS.forEach((s) => tempSymbolFillColors.add(s.code));
   scenario.settings?.symbolFillColors?.forEach((s) => {
@@ -512,6 +526,9 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
     mapSettings,
     symbolFillColorMap,
     customSymbolMap,
+    operationalObjectIds,
+    operationalObjectMap,
+    operationalStateCounter: 0,
     boundingBox: scenario.settings?.boundingBox ?? null,
   };
 }
