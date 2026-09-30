@@ -157,9 +157,7 @@ export type ScenarioMapLayerUpdate =
   | ScenarioXYZLayerUpdate
   | ScenarioKMLLayerUpdate;
 export type ScenarioStackLayerUpdate =
-  | ScenarioLayerUpdate
-  | ScenarioMapLayerUpdate
-  | Record<string, unknown>;
+  ScenarioLayerUpdate | ScenarioMapLayerUpdate | Record<string, unknown>;
 
 export interface SideGroupUpdate extends Partial<Omit<NSideGroup, "id" | "subUnits">> {}
 export interface UnitUpdate extends Partial<Omit<NUnit, "id">> {}
@@ -254,6 +252,8 @@ export const TIMESTAMP_NAMES = [
   "validFrom",
   "validUntil",
   "startTime",
+  "tot",
+  "effectAt",
 ];
 export type ScenarioEventType = "unit" | "scenario";
 export interface NScenarioEvent extends ScenarioEvent {

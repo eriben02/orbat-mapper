@@ -5,7 +5,15 @@ import type { EntityId, ScenarioTime } from "@/types/base";
  * Discriminated by `kind`. Add a member here for the next domain object.
  * Do not collapse these into one object of optional fields.
  */
-export type OperationalObjectKind = "airspace" | "package" | "mission" | "target";
+export type OperationalObjectKind =
+  | "airspace"
+  | "package"
+  | "mission"
+  | "target"
+  | "effect"
+  | "engagement"
+  | "support"
+  | "assessment";
 
 /**
  * One field for now. Authorization (PLANNED/APPROVED) and epistemic status
@@ -39,6 +47,18 @@ export interface OperationalRelation {
   target: {
     kind: string;
     id: string;
+  };
+  /**
+   * Structured facts for a dependency. Absent on a purely structural edge.
+   * Times are not availability rules unless a rule says it reads them.
+   */
+  constraint?: {
+    validFrom?: ScenarioTime;
+    validUntil?: ScenarioTime;
+    effectAt?: ScenarioTime;
+    /** Named gaps. Not values, and not a feasibility result. */
+    unresolvedFactors?: string[];
+    basis?: string;
   };
 }
 
@@ -108,6 +128,8 @@ export interface OperationalPackage extends OperationalObjectBase {
 export interface OperationalMission extends OperationalObjectBase {
   kind: "mission";
   name: string;
+  /** Time on target in the current plan. A proposal must not write this. */
+  tot?: ScenarioTime;
   state?: PackageState[];
   _state?: CurrentPackageState | null;
 }
@@ -119,8 +141,42 @@ export interface OperationalTarget extends OperationalObjectBase {
   _state?: CurrentPackageState | null;
 }
 
+export interface OperationalEffect extends OperationalObjectBase {
+  kind: "effect";
+  name: string;
+  state?: PackageState[];
+  _state?: CurrentPackageState | null;
+}
+
+export interface OperationalEngagement extends OperationalObjectBase {
+  kind: "engagement";
+  name: string;
+  state?: PackageState[];
+  _state?: CurrentPackageState | null;
+}
+
+export interface OperationalSupport extends OperationalObjectBase {
+  kind: "support";
+  name: string;
+  state?: PackageState[];
+  _state?: CurrentPackageState | null;
+}
+
+export interface OperationalAssessment extends OperationalObjectBase {
+  kind: "assessment";
+  name: string;
+  state?: PackageState[];
+  _state?: CurrentPackageState | null;
+}
+
 /** Named objects share `name` and have no geometry in this experiment. */
 export type NamedOperationalObject =
-  OperationalPackage | OperationalMission | OperationalTarget;
+  | OperationalPackage
+  | OperationalMission
+  | OperationalTarget
+  | OperationalEffect
+  | OperationalEngagement
+  | OperationalSupport
+  | OperationalAssessment;
 
 export type OperationalObject = AirspaceControlMeasure | NamedOperationalObject;

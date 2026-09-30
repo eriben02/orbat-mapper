@@ -58,7 +58,12 @@ describe("traceOperationalRelations", () => {
     const { objects } = demoAt(T_1300);
     const trace = traceOperationalRelations(ROZ_ID, objects, { excludeHidden: true });
     const ids = trace.nodes.map((node) => node.id);
-    expect(ids).toEqual([ROZ_ID, PKG_ID, MISSION_ID, TARGET_ID]);
+    expect(ids).toEqual(expect.arrayContaining([ROZ_ID, PKG_ID, MISSION_ID, TARGET_ID]));
+    expect(
+      trace.nodes
+        .find((node) => node.id === TARGET_ID)
+        ?.path.map((edge) => edge.targetId),
+    ).toEqual([PKG_ID, MISSION_ID, TARGET_ID]);
 
     const toPackage = trace.edges.find((edge) => edge.targetId === PKG_ID);
     const toMission = trace.edges.find((edge) => edge.targetId === MISSION_ID);
@@ -128,19 +133,19 @@ describe("traceOperationalRelations", () => {
       excludeHidden: true,
     });
     expect(laterTrace.nodes.find((node) => node.id === ROZ_ID)?.hidden).toBe(true);
-    expect(laterTrace.nodes.map((node) => node.id)).toEqual([
-      ROZ_ID,
-      PKG_ID,
-      MISSION_ID,
-      TARGET_ID,
-    ]);
+    expect(laterTrace.nodes.map((node) => node.id)).toEqual(
+      expect.arrayContaining([ROZ_ID, PKG_ID, MISSION_ID, TARGET_ID]),
+    );
     expect(laterTrace.nodes.find((node) => node.id === TARGET_ID)?.hidden).toBe(false);
 
     const { objects } = demoAt(T_1300);
     const target = objects.find((item) => item.id === TARGET_ID);
     if (target) target._hidden = true;
     const excluded = traceOperationalRelations(ROZ_ID, objects, { excludeHidden: true });
-    expect(excluded.nodes.map((node) => node.id)).toEqual([ROZ_ID, PKG_ID, MISSION_ID]);
+    expect(excluded.nodes.map((node) => node.id)).toEqual(
+      expect.arrayContaining([ROZ_ID, PKG_ID, MISSION_ID]),
+    );
+    expect(excluded.nodes.map((node) => node.id)).not.toContain(TARGET_ID);
     const kept = traceOperationalRelations(ROZ_ID, objects, { excludeHidden: false });
     expect(kept.edges.find((edge) => edge.targetId === TARGET_ID)?.targetHidden).toBe(
       true,

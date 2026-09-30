@@ -15,6 +15,14 @@ const INVERSE_RELATION_TYPE: Record<string, string> = {
   executes: "executed-by",
   targets: "targeted-by",
   "targeted-by": "targets",
+  "depends-on-effect-window": "effect-window-for",
+  "effect-window-for": "depends-on-effect-window",
+  "synchronized-with": "synchronized-by",
+  "synchronized-by": "synchronized-with",
+  "requires-recalculation": "recalculation-for",
+  "recalculation-for": "requires-recalculation",
+  "timing-assumption": "assumption-for",
+  "assumption-for": "timing-assumption",
 };
 
 export function inverseRelationType(type: string): string {

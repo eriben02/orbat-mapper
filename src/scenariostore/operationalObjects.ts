@@ -6,6 +6,7 @@ import type {
   CurrentPackageState,
   NamedOperationalObject,
   OperationalObject,
+  OperationalRelation,
   OperationalStatePatch,
 } from "@/types/operationalModels";
 
@@ -116,6 +117,22 @@ export function applyOperationalProjection(
   applyNamedObjectProjection(object, timestamp);
 }
 
+function relationsToInternal(
+  relations: OperationalRelation[] | undefined,
+): OperationalRelation[] | undefined {
+  if (!relations) return relations;
+  return relations.map((relation) => {
+    if (!relation.constraint) return relation;
+    const constraint = { ...relation.constraint };
+    if (constraint.validFrom != null) constraint.validFrom = +dayjs(constraint.validFrom);
+    if (constraint.validUntil != null) {
+      constraint.validUntil = +dayjs(constraint.validUntil);
+    }
+    if (constraint.effectAt != null) constraint.effectAt = +dayjs(constraint.effectAt);
+    return { ...relation, constraint };
+  });
+}
+
 export function operationalObjectToInternal<T extends OperationalObject>(object: T): T {
   const state = object.state
     ?.map((entry) => ({
@@ -124,10 +141,14 @@ export function operationalObjectToInternal<T extends OperationalObject>(object:
       t: +dayjs(entry.t),
     }))
     .sort((a, b) => a.t - b.t);
+  const tot = "tot" in object && object.tot != null ? +dayjs(object.tot) : undefined;
+  const relations = relationsToInternal(object.relations);
   return {
     ...object,
     validFrom: +dayjs(object.validFrom),
     validUntil: +dayjs(object.validUntil),
+    ...(relations ? { relations } : {}),
+    ...(tot != null ? { tot } : {}),
     ...(state ? { state } : {}),
   } as T;
 }

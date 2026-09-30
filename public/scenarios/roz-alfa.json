@@ -7,7 +7,7 @@
     "lastModifiedDate": "2026-09-29T20:00:00.000Z"
   },
   "name": "ROZ ALFA",
-  "description": "A four-object operation. The clock starts at 1100Z. At 1300Z click ROZ ALFA, then navigate PACKAGE-21 → MISSION-04 → TARGET-17. Inverse edges are derived, not stored.",
+  "description": "At 1300Z open MISSION-04 from ROZ ALFA. Current TOT stays 1345Z. Propose 1415Z to see which declared dependencies can be checked and which only need review.",
   "startTime": "2026-01-15T11:00:00Z",
   "timeZone": "UTC",
   "symbologyStandard": "2525e",
@@ -92,6 +92,13 @@
         {
           "type": "requires",
           "target": { "kind": "airspace", "id": "7N3kP0wQvR2sT8uYxZ4aB" }
+        },
+        {
+          "type": "requires-recalculation",
+          "target": { "kind": "support", "id": "tK02QvR8sT0uYxZ4aB7cI" },
+          "constraint": {
+            "unresolvedFactors": ["fuel", "route", "aircraft-performance"]
+          }
         }
       ],
       "state": [
@@ -107,6 +114,7 @@
       "kind": "mission",
       "designator": "MISSION-04",
       "name": "Strike mission",
+      "tot": "2026-01-15T13:45:00Z",
       "validFrom": "2026-01-15T12:00:00Z",
       "validUntil": "2026-01-15T16:00:00Z",
       "status": "PLANNED",
@@ -118,6 +126,24 @@
         {
           "type": "targets",
           "target": { "kind": "target", "id": "tG17QvR8sT0uYxZ4aB7cF" }
+        },
+        {
+          "type": "depends-on-effect-window",
+          "target": { "kind": "effect", "id": "sE03QvR8sT0uYxZ4aB7cG" },
+          "constraint": {
+            "validFrom": "2026-01-15T13:35:00Z",
+            "validUntil": "2026-01-15T13:55:00Z"
+          }
+        },
+        {
+          "type": "synchronized-with",
+          "target": { "kind": "engagement", "id": "tL07QvR8sT0uYxZ4aB7cH" },
+          "constraint": { "effectAt": "2026-01-15T13:43:00Z" }
+        },
+        {
+          "type": "timing-assumption",
+          "target": { "kind": "assessment", "id": "tA01QvR8sT0uYxZ4aB7cJ" },
+          "constraint": { "basis": "subject-time" }
         }
       ],
       "state": [
@@ -144,6 +170,50 @@
           "patch": { "status": "PLANNED" }
         }
       ]
+    },
+    {
+      "id": "sE03QvR8sT0uYxZ4aB7cG",
+      "kind": "effect",
+      "designator": "SEAD-03",
+      "name": "SEAD effect",
+      "validFrom": "2026-01-15T12:00:00Z",
+      "validUntil": "2026-01-15T16:00:00Z",
+      "status": "PLANNED",
+      "relations": [],
+      "state": []
+    },
+    {
+      "id": "tL07QvR8sT0uYxZ4aB7cH",
+      "kind": "engagement",
+      "designator": "TLAM-STRIKE-07",
+      "name": "Synchronized strike",
+      "validFrom": "2026-01-15T12:00:00Z",
+      "validUntil": "2026-01-15T16:00:00Z",
+      "status": "PLANNED",
+      "relations": [],
+      "state": []
+    },
+    {
+      "id": "tK02QvR8sT0uYxZ4aB7cI",
+      "kind": "support",
+      "designator": "TANKER-02",
+      "name": "Tanker support",
+      "validFrom": "2026-01-15T12:50:00Z",
+      "validUntil": "2026-01-15T13:10:00Z",
+      "status": "PLANNED",
+      "relations": [],
+      "state": []
+    },
+    {
+      "id": "tA01QvR8sT0uYxZ4aB7cJ",
+      "kind": "assessment",
+      "designator": "THREAT-ASSESSMENT-01",
+      "name": "Threat assessment",
+      "validFrom": "2026-01-15T12:00:00Z",
+      "validUntil": "2026-01-15T16:00:00Z",
+      "status": "PLANNED",
+      "relations": [],
+      "state": []
     }
   ],
   "settings": {

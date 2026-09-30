@@ -136,9 +136,11 @@ describe("PACKAGE-21", () => {
     expect(object.id).not.toBe(object.designator);
     expect(object).not.toHaveProperty("geometry");
     expect(store.state.layerItemMap).toEqual({});
-    expect(object.relations).toEqual([
-      { type: "requires", target: { kind: "airspace", id: ROZ_ID } },
-    ]);
+    expect(object.relations).toEqual(
+      expect.arrayContaining([
+        { type: "requires", target: { kind: "airspace", id: ROZ_ID } },
+      ]),
+    );
   });
 
   it("uses the scenario clock and overlaps ROZ ALFA while the zone is visible", () => {
@@ -174,9 +176,11 @@ describe("PACKAGE-21", () => {
     expect(savedPkg).not.toHaveProperty("_state");
     expect(savedPkg).not.toHaveProperty("_hidden");
     expect(savedPkg.name).toBe("UAV Support Package");
-    expect(savedPkg.relations).toEqual([
-      { type: "requires", target: { kind: "airspace", id: ROZ_ID } },
-    ]);
+    expect(savedPkg.relations).toEqual(
+      expect.arrayContaining([
+        { type: "requires", target: { kind: "airspace", id: ROZ_ID } },
+      ]),
+    );
     expect(savedRoz?.relations?.some((relation) => relation.type === "required-by")).toBe(
       false,
     );
@@ -227,10 +231,12 @@ describe("MISSION-04 and TARGET-17", () => {
     expect(target.id).not.toBe(target.designator);
     expect(target).not.toHaveProperty("geometry");
     expect(store.state.layerItemMap).toEqual({});
-    expect(mission.relations).toEqual([
-      { type: "executed-by", target: { kind: "package", id: PKG_ID } },
-      { type: "targets", target: { kind: "target", id: TARGET_ID } },
-    ]);
+    expect(mission.relations).toEqual(
+      expect.arrayContaining([
+        { type: "executed-by", target: { kind: "package", id: PKG_ID } },
+        { type: "targets", target: { kind: "target", id: TARGET_ID } },
+      ]),
+    );
     expect(target.relations).toEqual([]);
   });
 
@@ -263,14 +269,18 @@ describe("MISSION-04 and TARGET-17", () => {
     expect(savedMission).not.toHaveProperty("_state");
     expect(savedMission).not.toHaveProperty("_hidden");
     expect(savedTarget).not.toHaveProperty("_state");
-    expect(savedMission.relations).toEqual([
-      { type: "executed-by", target: { kind: "package", id: PKG_ID } },
-      { type: "targets", target: { kind: "target", id: TARGET_ID } },
-    ]);
+    expect(savedMission.relations).toEqual(
+      expect.arrayContaining([
+        { type: "executed-by", target: { kind: "package", id: PKG_ID } },
+        { type: "targets", target: { kind: "target", id: TARGET_ID } },
+      ]),
+    );
     expect(savedTarget.relations).toEqual([]);
-    expect(savedPkg?.relations).toEqual([
-      { type: "requires", target: { kind: "airspace", id: ROZ_ID } },
-    ]);
+    expect(savedPkg?.relations).toEqual(
+      expect.arrayContaining([
+        { type: "requires", target: { kind: "airspace", id: ROZ_ID } },
+      ]),
+    );
     expect(savedPkg?.relations?.some((relation) => relation.type === "executes")).toBe(
       false,
     );
