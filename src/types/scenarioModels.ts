@@ -18,7 +18,12 @@ import type { SymbolFillColor } from "@/config/colors.ts";
 import type { ScenarioStackLayer } from "@/types/scenarioStackLayers";
 import type { ScenarioLayerItemsLayer } from "@/types/scenarioLayerItems";
 import type { ScenarioMapLayer } from "./scenarioGeoModels";
-import type { OperationalClaim, OperationalObject } from "@/types/operationalModels";
+import type {
+  OperationalClaim,
+  OperationalExpectation,
+  OperationalObject,
+  OperationalObservation,
+} from "@/types/operationalModels";
 
 export interface State extends Partial<ScenarioEventDescription> {
   id: string;
@@ -402,6 +407,10 @@ export interface Scenario extends ScenarioInfo {
    * Absent on scenarios written before this experiment.
    */
   operationalClaims?: OperationalClaim[];
+  /** What the plan expects. Status is derived, not stored. */
+  operationalExpectations?: OperationalExpectation[];
+  /** Evidence about what happened. Separate from claims. */
+  operationalObservations?: OperationalObservation[];
   /** @deprecated load-only compatibility shape */
   layers?: ScenarioLayerItemsLayer[];
   /** @deprecated load-only compatibility shape */

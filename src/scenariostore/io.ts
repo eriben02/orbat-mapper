@@ -362,6 +362,12 @@ export function useScenarioIO(store: ShallowRef<NewScenarioStore>) {
       ...(state.operationalClaims?.length
         ? { operationalClaims: state.operationalClaims }
         : {}),
+      ...(state.operationalExpectations?.length
+        ? { operationalExpectations: state.operationalExpectations }
+        : {}),
+      ...(state.operationalObservations?.length
+        ? { operationalObservations: state.operationalObservations }
+        : {}),
       settings: {
         rangeRingGroups: getRangeRingGroups(state),
         statuses: getUnitStatuses(state),

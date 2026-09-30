@@ -7,7 +7,7 @@
     "lastModifiedDate": "2026-09-29T20:00:00.000Z"
   },
   "name": "ROZ ALFA",
-  "description": "MISSION-04 is the plan. The map shows its airspace. A report arrives at 1320Z. Propose a new TOT from the mission panel.",
+  "description": "MISSION-04 is the plan. A report arrives at 1320Z. The TLAM effect is expected by 1346Z. Confirmation can arrive later than the event.",
   "startTime": "2026-01-15T13:00:00Z",
   "timeZone": "UTC",
   "symbologyStandard": "2525e",
@@ -34,14 +34,34 @@
       "startTime": "2026-01-15T13:35:00Z"
     },
     {
+      "id": "evtRozAlfa1342Z00001",
+      "title": "1342Z Expectation pending",
+      "startTime": "2026-01-15T13:42:00Z"
+    },
+    {
       "id": "evtRozAlfa1343Z00001",
       "title": "1343Z TLAM-STRIKE-07 effect",
       "startTime": "2026-01-15T13:43:00Z"
     },
     {
+      "id": "evtRozAlfa1344Z00001",
+      "title": "1344Z Inside confirmation window",
+      "startTime": "2026-01-15T13:44:00Z"
+    },
+    {
       "id": "evtRozAlfa1345Z00001",
       "title": "1345Z MISSION-04 TOT",
       "startTime": "2026-01-15T13:45:00Z"
+    },
+    {
+      "id": "evtRozAlfa1347Z00001",
+      "title": "1347Z Confirmation deadline passed",
+      "startTime": "2026-01-15T13:47:00Z"
+    },
+    {
+      "id": "evtRozAlfa1348Z00001",
+      "title": "1348Z Observation received",
+      "startTime": "2026-01-15T13:48:00Z"
     },
     {
       "id": "evtRozAlfa1400Z00001",
@@ -243,6 +263,29 @@
       "source": "AIRSPACE-CELL",
       "reason": "ACTIVITY-X",
       "authority": "UNKNOWN",
+      "confidence": "UNKNOWN"
+    }
+  ],
+  "operationalExpectations": [
+    {
+      "id": "xP01QvR8sT0uYxZ4aB7cL",
+      "subjectId": "tL07QvR8sT0uYxZ4aB7cH",
+      "predicate": "effect",
+      "expectedValue": "OCCURRED",
+      "expectedAt": "2026-01-15T13:43:00Z",
+      "confirmBy": "2026-01-15T13:46:00Z",
+      "basis": "plan"
+    }
+  ],
+  "operationalObservations": [
+    {
+      "id": "oB01QvR8sT0uYxZ4aB7cM",
+      "subjectId": "tL07QvR8sT0uYxZ4aB7cH",
+      "predicate": "effect",
+      "value": "OCCURRED",
+      "observedAt": "2026-01-15T13:43:00Z",
+      "receivedAt": "2026-01-15T13:48:00Z",
+      "source": "ISR-SENSOR-01",
       "confidence": "UNKNOWN"
     }
   ],

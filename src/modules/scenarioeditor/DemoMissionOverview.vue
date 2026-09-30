@@ -9,6 +9,10 @@ import {
   evaluateProposedTot,
   type ProposedChangeEvaluation,
 } from "@/scenariostore/operationalChange";
+import {
+  evaluateExpectations,
+  type ExpectationEvaluation,
+} from "@/scenariostore/operationalExpectations";
 import { buildDemoMissionOverview } from "@/modules/scenarioeditor/demoMissionView";
 import {
   evaluationFindingDetail,
@@ -34,6 +38,51 @@ const overview = computed(() =>
     state.currentTime,
   ),
 );
+
+const expectationResults = computed(() =>
+  evaluateExpectations(
+    state.operationalExpectations ?? [],
+    state.operationalObservations ?? [],
+    Object.values(state.operationalObjectMap),
+    state.currentTime,
+  ),
+);
+
+const expectationAttention = computed(() =>
+  expectationResults.value.filter((item) => item.attention),
+);
+
+const timeBeats = computed(() => {
+  const beats = [...(overview.value?.beats ?? [])];
+  const seen = new Set(beats.map((beat) => beat.time));
+  const add = (id: string, time: number | null, label: string) => {
+    if (time == null || seen.has(time)) return;
+    beats.push({ id, time, label });
+    seen.add(time);
+  };
+  for (const result of expectationResults.value) {
+    add(`expected:${result.expectationId}`, result.expectedAt, "Expected effect");
+    add(`confirm:${result.expectationId}`, result.confirmBy, "Confirm by");
+  }
+  for (const observation of state.operationalObservations ?? []) {
+    const received =
+      typeof observation.receivedAt === "number"
+        ? observation.receivedAt
+        : Date.parse(String(observation.receivedAt));
+    add(`received:${observation.id}`, received, `${observation.source} observation`);
+  }
+  for (const id of state.events) {
+    const event = state.eventMap[id];
+    if (!event) continue;
+    const zulu = formatZulu(event.startTime);
+    const label = event.title.startsWith(zulu)
+      ? event.title.slice(zulu.length).trim()
+      : event.title;
+    add(event.id, event.startTime, label);
+  }
+  beats.sort((a, b) => a.time - b.time || a.label.localeCompare(b.label));
+  return beats;
+});
 
 const attention = computed(
   () => totEvaluation.value?.findings.filter((item) => item.status !== "SATISFIED") ?? [],
@@ -75,6 +124,55 @@ function goTo(time: number) {
 
 function unknownLabel(value: string) {
   return value === "UNKNOWN" ? "Unknown" : value;
+}
+
+function objectStatus(objectId: string) {
+  const object = state.operationalObjectMap[objectId];
+  return object?._state?.status ?? object?.status ?? "";
+}
+
+function objectName(objectId: string) {
+  const object = state.operationalObjectMap[objectId];
+  return object?._state?.designator ?? object?.designator ?? objectId;
+}
+
+function expectationStatusLabel(status: ExpectationEvaluation["status"]) {
+  switch (status) {
+    case "PENDING":
+      return "Pending";
+    case "AWAITING_CONFIRMATION":
+      return "Awaiting confirmation";
+    case "NOT_CONFIRMED":
+      return "Not confirmed";
+    case "CONFIRMED":
+      return "Confirmed";
+    default:
+      return "Unknown";
+  }
+}
+
+function expectationDetail(result: ExpectationEvaluation) {
+  switch (result.status) {
+    case "PENDING":
+      return "The expected time has not arrived.";
+    case "AWAITING_CONFIRMATION":
+      return "The expected time has passed. The confirmation window is still open.";
+    case "NOT_CONFIRMED":
+      return "No represented confirming observation is available. This is not evidence that the effect did not occur.";
+    case "CONFIRMED":
+      return result.receivedAt != null &&
+        result.observedAt != null &&
+        result.receivedAt > result.observedAt
+        ? "Confirmed. The event time and the time the information arrived are different."
+        : "Confirmed by a represented observation.";
+    default:
+      return "The expectation cannot be evaluated.";
+  }
+}
+
+function relationPhrase(type: string) {
+  if (type === "synchronized-with") return "Synchronization relationship";
+  return type;
 }
 
 function findingName(objectId: string) {
@@ -150,6 +248,71 @@ async function evaluateTot() {
         >
           Inspect {{ report.subjectDesignator }}
         </button>
+      </div>
+    </section>
+
+    <section
+      v-if="expectationAttention.length"
+      class="rounded border-l-4 border-amber-600 bg-amber-50 p-3 dark:bg-amber-950/30"
+    >
+      <h3 class="text-sm font-medium">Attention</h3>
+      <p class="mt-1 text-xs">
+        Expected progress is not confirmed. This is not evidence that it did not occur.
+      </p>
+      <div
+        v-for="result in expectationAttention"
+        :key="result.expectationId"
+        class="mt-3"
+      >
+        <p>{{ objectName(result.subjectId) }}</p>
+        <p>Expected {{ formatZulu(result.expectedAt) }}</p>
+        <p>Confirm by {{ formatZulu(result.confirmBy) }}</p>
+        <p class="text-muted-foreground text-xs">
+          No represented confirming observation is available.
+        </p>
+        <p class="mt-1 text-xs">Object state: {{ objectStatus(result.subjectId) }}</p>
+        <p
+          v-for="link in result.related"
+          :key="link.objectId + link.relationType"
+          class="mt-1"
+        >
+          Related: {{ objectName(link.objectId) }}.
+          {{ relationPhrase(link.relationType) }}.
+        </p>
+      </div>
+    </section>
+
+    <section v-if="expectationResults.length">
+      <h3 class="text-sm font-medium">Expected</h3>
+      <div v-for="result in expectationResults" :key="result.expectationId" class="mt-2">
+        <button
+          type="button"
+          class="text-left hover:underline"
+          @click="openObject(result.subjectId)"
+        >
+          {{ objectName(result.subjectId) }}
+        </button>
+        <p>
+          {{ result.predicate }} {{ result.expectedValue }} ·
+          {{ formatZulu(result.expectedAt) }}–{{ formatZulu(result.confirmBy) }}
+        </p>
+        <p class="font-medium">{{ expectationStatusLabel(result.status) }}</p>
+        <p class="text-muted-foreground text-xs">{{ expectationDetail(result) }}</p>
+        <template v-if="result.status === 'CONFIRMED'">
+          <p class="mt-1">{{ result.observationSource }}</p>
+          <p>Observed {{ formatZulu(result.observedAt) }}</p>
+          <p>Received {{ formatZulu(result.receivedAt) }}</p>
+        </template>
+        <template v-if="result.attention">
+          <p
+            v-for="link in result.related"
+            :key="link.objectId + link.relationType"
+            class="text-xs"
+          >
+            Related: {{ objectName(link.objectId) }}.
+            {{ relationPhrase(link.relationType) }}.
+          </p>
+        </template>
       </div>
     </section>
 
@@ -240,7 +403,7 @@ async function evaluateTot() {
     <section>
       <h3 class="text-sm font-medium">Time</h3>
       <ul class="mt-2 space-y-1">
-        <li v-for="beat in overview.beats" :key="beat.id">
+        <li v-for="beat in timeBeats" :key="beat.id">
           <button
             type="button"
             class="hover:bg-muted w-full rounded px-1 py-0.5 text-left"

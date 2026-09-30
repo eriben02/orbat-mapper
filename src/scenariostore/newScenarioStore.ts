@@ -67,9 +67,18 @@ import {
   isScenarioOverlayLayer,
   isScenarioReferenceLayer,
 } from "@/types/scenarioStackLayers";
-import type { OperationalClaim, OperationalObject } from "@/types/operationalModels";
+import type {
+  OperationalClaim,
+  OperationalExpectation,
+  OperationalObject,
+  OperationalObservation,
+} from "@/types/operationalModels";
 import { operationalObjectToInternal } from "@/scenariostore/operationalObjects";
 import { claimToInternal } from "@/scenariostore/operationalClaims";
+import {
+  expectationToInternal,
+  observationToInternal,
+} from "@/scenariostore/operationalExpectations";
 
 export interface ScenarioState {
   id: EntityId;
@@ -107,6 +116,8 @@ export interface ScenarioState {
   operationalObjectIds: EntityId[];
   operationalObjectMap: Record<EntityId, OperationalObject>;
   operationalClaims: OperationalClaim[];
+  operationalExpectations: OperationalExpectation[];
+  operationalObservations: OperationalObservation[];
   operationalStateCounter: number;
   boundingBox: BBox | null;
 }
@@ -200,6 +211,12 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
   });
 
   const operationalClaims = (scenario.operationalClaims ?? []).map(claimToInternal);
+  const operationalExpectations = (scenario.operationalExpectations ?? []).map(
+    expectationToInternal,
+  );
+  const operationalObservations = (scenario.operationalObservations ?? []).map(
+    observationToInternal,
+  );
   for (const object of scenario.operationalObjects ?? []) {
     const internal = operationalObjectToInternal(object);
     operationalObjectMap[internal.id] = internal;
@@ -531,6 +548,8 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
     operationalObjectIds,
     operationalObjectMap,
     operationalClaims,
+    operationalExpectations,
+    operationalObservations,
     operationalStateCounter: 0,
     boundingBox: scenario.settings?.boundingBox ?? null,
   };

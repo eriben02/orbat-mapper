@@ -202,3 +202,36 @@ export interface OperationalClaim {
   authority: string;
   confidence: string;
 }
+
+/**
+ * What the plan says should happen.
+ * Status is not stored. It is derived from the clock and known observations.
+ */
+export interface OperationalExpectation {
+  id: EntityId;
+  /** Stable id of the operational object. Never a designator. */
+  subjectId: EntityId;
+  predicate: string;
+  expectedValue: string;
+  expectedAt: ScenarioTime;
+  /** Inclusive deadline for a confirming observation to be known. */
+  confirmBy: ScenarioTime;
+  basis?: string;
+}
+
+/**
+ * Represented evidence about what happened.
+ * Not a claim, and not object state.
+ * `observedAt` is the event time. `receivedAt` is when the information arrived.
+ */
+export interface OperationalObservation {
+  id: EntityId;
+  subjectId: EntityId;
+  predicate: string;
+  value: string;
+  observedAt: ScenarioTime;
+  receivedAt: ScenarioTime;
+  source: string;
+  confidence: string;
+  basis?: string;
+}
