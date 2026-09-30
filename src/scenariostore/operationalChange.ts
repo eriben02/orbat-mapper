@@ -1,5 +1,10 @@
-import type { OperationalObject, OperationalRelation } from "@/types/operationalModels";
+import type {
+  OperationalClaim,
+  OperationalObject,
+  OperationalRelation,
+} from "@/types/operationalModels";
 import { traceOperationalRelations } from "@/scenariostore/operationalTrace";
+import { getClaimsForSubject } from "@/scenariostore/operationalClaims";
 
 /**
  * Evaluate a proposed TOT against declared dependencies.
@@ -9,7 +14,7 @@ import { traceOperationalRelations } from "@/scenariostore/operationalTrace";
  */
 
 export type EvaluationStatus =
-  "SATISFIED" | "CONFLICT" | "CHANGED" | "REVIEW_REQUIRED" | "UNKNOWN";
+  "SATISFIED" | "CONFLICT" | "CHANGED" | "REVIEW_REQUIRED" | "UNKNOWN" | "CLAIM_PRESENT";
 
 export interface EvaluationFact {
   key: string;
@@ -257,13 +262,15 @@ function evaluateRelation(
 }
 
 /**
- * Read-only. `objects` is not copied and not written.
- * Structural edges with no evaluation class produce no finding.
+ * Read-only. `objects` and `claims` are not written.
+ * A claim inside a proposed TOT is reported as CLAIM_PRESENT.
+ * It does not become CONFLICT and it does not change object state.
  */
 export function evaluateProposedTot(
   subjectId: string,
   objects: readonly OperationalObject[],
   proposed: number,
+  claims: readonly OperationalClaim[] = [],
 ): ProposedChangeEvaluation {
   const subject = objects.find((item) => item.id === subjectId);
   const current =
@@ -292,5 +299,45 @@ export function evaluateProposedTot(
       if (next) findings.push(next);
     }
   }
+  findings.push(...availabilityClaimFindings(findings, claims, proposed));
   return { subjectId, field: "tot", current, proposed, findings };
+}
+
+function availabilityClaimFindings(
+  findings: readonly EvaluationFinding[],
+  claims: readonly OperationalClaim[],
+  proposed: number,
+): EvaluationFinding[] {
+  const extra: EvaluationFinding[] = [];
+  const seen = new Set<string>();
+  for (const item of findings) {
+    if (item.relationType !== "requires") continue;
+    for (const view of getClaimsForSubject(item.objectId, claims, proposed)) {
+      if (view.predicate !== "availability" || !view.currentlyValid) continue;
+      if (seen.has(view.id)) continue;
+      seen.add(view.id);
+      extra.push({
+        status: "CLAIM_PRESENT",
+        objectId: item.objectId,
+        objectKind: item.objectKind,
+        relationType: "claim",
+        relationSourceId: view.id,
+        derived: false,
+        rule: "availability-claim-present",
+        calculated: false,
+        review: true,
+        facts: [
+          { key: "claimId", value: view.id },
+          { key: "value", value: view.value },
+          { key: "reportedAt", value: view.reportedAt },
+          { key: "validFrom", value: view.validFrom ?? "absent" },
+          { key: "validUntil", value: view.validUntil ?? "absent" },
+          { key: "source", value: view.source },
+          { key: "authority", value: view.authority },
+          { key: "authoritative", value: false },
+        ],
+      });
+    }
+  }
+  return extra;
 }

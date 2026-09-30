@@ -67,8 +67,9 @@ import {
   isScenarioOverlayLayer,
   isScenarioReferenceLayer,
 } from "@/types/scenarioStackLayers";
-import type { OperationalObject } from "@/types/operationalModels";
+import type { OperationalClaim, OperationalObject } from "@/types/operationalModels";
 import { operationalObjectToInternal } from "@/scenariostore/operationalObjects";
+import { claimToInternal } from "@/scenariostore/operationalClaims";
 
 export interface ScenarioState {
   id: EntityId;
@@ -105,6 +106,7 @@ export interface ScenarioState {
   customSymbolMap: Record<string, CustomSymbol>;
   operationalObjectIds: EntityId[];
   operationalObjectMap: Record<EntityId, OperationalObject>;
+  operationalClaims: OperationalClaim[];
   operationalStateCounter: number;
   boundingBox: BBox | null;
 }
@@ -197,6 +199,7 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
     customSymbolMap[s.id] = s;
   });
 
+  const operationalClaims = (scenario.operationalClaims ?? []).map(claimToInternal);
   for (const object of scenario.operationalObjects ?? []) {
     const internal = operationalObjectToInternal(object);
     operationalObjectMap[internal.id] = internal;
@@ -527,6 +530,7 @@ export function prepareScenario(newScenario: Scenario | LoadableScenario): Scena
     customSymbolMap,
     operationalObjectIds,
     operationalObjectMap,
+    operationalClaims,
     operationalStateCounter: 0,
     boundingBox: scenario.settings?.boundingBox ?? null,
   };

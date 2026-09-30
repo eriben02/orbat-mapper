@@ -7,7 +7,7 @@
     "lastModifiedDate": "2026-09-29T20:00:00.000Z"
   },
   "name": "ROZ ALFA",
-  "description": "At 1300Z open MISSION-04 from ROZ ALFA. Current TOT stays 1345Z. Propose 1415Z to see which declared dependencies can be checked and which only need review.",
+  "description": "At 1345Z select ROZ ALFA. Its state stays PLANNED. A separate claim from AIRSPACE-CELL says UNAVAILABLE 1330Z–1400Z. That claim is not object state.",
   "startTime": "2026-01-15T11:00:00Z",
   "timeZone": "UTC",
   "symbologyStandard": "2525e",
@@ -27,6 +27,21 @@
       "id": "evtRozAlfa1300Z00001",
       "title": "1300Z",
       "startTime": "2026-01-15T13:00:00Z"
+    },
+    {
+      "id": "evtRozAlfa1325Z00001",
+      "title": "1325Z",
+      "startTime": "2026-01-15T13:25:00Z"
+    },
+    {
+      "id": "evtRozAlfa1345Z00001",
+      "title": "1345Z",
+      "startTime": "2026-01-15T13:45:00Z"
+    },
+    {
+      "id": "evtRozAlfa1410Z00001",
+      "title": "1410Z",
+      "startTime": "2026-01-15T14:10:00Z"
     },
     {
       "id": "evtRozAlfa1431Z00001",
@@ -214,6 +229,21 @@
       "status": "PLANNED",
       "relations": [],
       "state": []
+    }
+  ],
+  "operationalClaims": [
+    {
+      "id": "cL01QvR8sT0uYxZ4aB7cK",
+      "subjectId": "7N3kP0wQvR2sT8uYxZ4aB",
+      "predicate": "availability",
+      "value": "UNAVAILABLE",
+      "reportedAt": "2026-01-15T13:20:00Z",
+      "validFrom": "2026-01-15T13:30:00Z",
+      "validUntil": "2026-01-15T14:00:00Z",
+      "source": "AIRSPACE-CELL",
+      "reason": "ACTIVITY-X",
+      "authority": "UNKNOWN",
+      "confidence": "UNKNOWN"
     }
   ],
   "settings": {

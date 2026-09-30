@@ -180,3 +180,25 @@ export type NamedOperationalObject =
   | OperationalAssessment;
 
 export type OperationalObject = AirspaceControlMeasure | NamedOperationalObject;
+
+/**
+ * A source assertion about an operational object.
+ * It is not object state and must not be written back onto the subject.
+ * `UNKNOWN` is stored explicitly when authority or confidence is not represented.
+ */
+export interface OperationalClaim {
+  id: EntityId;
+  /** Stable id of the operational object. Never a designator. */
+  subjectId: EntityId;
+  predicate: string;
+  value: string;
+  /** When the source made the report. Not the asserted window. */
+  reportedAt: ScenarioTime;
+  /** When the assertion is claimed to apply. Optional. */
+  validFrom?: ScenarioTime;
+  validUntil?: ScenarioTime;
+  source: string;
+  reason?: string;
+  authority: string;
+  confidence: string;
+}

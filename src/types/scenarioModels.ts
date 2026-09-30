@@ -18,7 +18,7 @@ import type { SymbolFillColor } from "@/config/colors.ts";
 import type { ScenarioStackLayer } from "@/types/scenarioStackLayers";
 import type { ScenarioLayerItemsLayer } from "@/types/scenarioLayerItems";
 import type { ScenarioMapLayer } from "./scenarioGeoModels";
-import type { OperationalObject } from "@/types/operationalModels";
+import type { OperationalClaim, OperationalObject } from "@/types/operationalModels";
 
 export interface State extends Partial<ScenarioEventDescription> {
   id: string;
@@ -397,6 +397,11 @@ export interface Scenario extends ScenarioInfo {
    * Absent on scenarios written before 3.5.0.
    */
   operationalObjects?: OperationalObject[];
+  /**
+   * Claims about operational objects. Not object state.
+   * Absent on scenarios written before this experiment.
+   */
+  operationalClaims?: OperationalClaim[];
   /** @deprecated load-only compatibility shape */
   layers?: ScenarioLayerItemsLayer[];
   /** @deprecated load-only compatibility shape */

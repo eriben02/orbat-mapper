@@ -11,6 +11,10 @@ import {
 } from "@/scenariostore/operationalRelations";
 import { traceOperationalRelations } from "@/scenariostore/operationalTrace";
 import {
+  getClaimsForSubject,
+  type SubjectClaim,
+} from "@/scenariostore/operationalClaims";
+import {
   evaluateProposedTot,
   type EvaluationFinding,
   type EvaluationStatus,
@@ -93,6 +97,16 @@ watch(selectedOperationalObjectId, () => {
 const attentionFindings = computed(
   () => totEvaluation.value?.findings.filter((item) => item.status !== "SATISFIED") ?? [],
 );
+
+const knownClaims = computed(() => {
+  const current = object.value;
+  if (!current) return [];
+  return getClaimsForSubject(
+    current.id,
+    state.operationalClaims ?? [],
+    state.currentTime,
+  ).filter((claim) => claim.known);
+});
 
 const relations = computed(() => {
   const current = object.value;
@@ -206,6 +220,8 @@ function statusLabel(status: EvaluationStatus) {
       return "Review required";
     case "UNKNOWN":
       return "Unknown";
+    case "CLAIM_PRESENT":
+      return "Claim present";
     default:
       return "Satisfied";
   }
@@ -254,6 +270,8 @@ function findingDetail(finding: EvaluationFinding) {
       }
       return "No time constraint is represented for this requirement.";
     }
+    case "availability-claim-present":
+      return `A claim says ${String(factValue(finding, "value"))}. It is not object state.`;
     default:
       return finding.rule;
   }
@@ -274,7 +292,30 @@ function evaluateTot() {
     current.id,
     Object.values(state.operationalObjectMap),
     proposed,
+    state.operationalClaims ?? [],
   );
+}
+
+function claimTiming(claim: SubjectClaim) {
+  if (claim.currentlyValid) {
+    return "Asserted for the current time. This is a claim, not object state.";
+  }
+  if (claim.futureValid) {
+    return "Reported. The asserted window has not started. This is a claim, not object state.";
+  }
+  if (claim.historical) {
+    return "Historical. The asserted window has ended. The claim is kept. This is not object state.";
+  }
+  return "This is a claim, not object state.";
+}
+
+function unknownLabel(value: string) {
+  return value === "UNKNOWN" ? "Unknown" : value;
+}
+
+function predicateLabel(predicate: string) {
+  if (!predicate) return predicate;
+  return predicate.charAt(0).toUpperCase() + predicate.slice(1);
 }
 </script>
 
@@ -312,6 +353,38 @@ function evaluateTot() {
         <template v-else>{{ relation.label }}</template>
       </DescriptionItem>
     </dl>
+    <section v-if="knownClaims.length" class="mt-6">
+      <h3 class="text-sm font-medium">Claims / Reports</h3>
+      <p class="text-muted-foreground mt-1 text-xs">
+        What a source says. Not the object's state.
+      </p>
+      <div v-for="claim in knownClaims" :key="claim.id" class="mt-3">
+        <p class="text-muted-foreground text-xs">{{ claimTiming(claim) }}</p>
+        <dl class="mt-2 space-y-3">
+          <DescriptionItem :label="predicateLabel(claim.predicate)">
+            {{ claim.value }}
+          </DescriptionItem>
+          <DescriptionItem label="Valid">
+            {{ formatZulu(claim.validFrom ?? undefined) }}–{{
+              formatZulu(claim.validUntil ?? undefined)
+            }}
+          </DescriptionItem>
+          <DescriptionItem label="Reported">
+            {{ formatZulu(claim.reportedAt) }}
+          </DescriptionItem>
+          <DescriptionItem label="Source">{{ claim.source }}</DescriptionItem>
+          <DescriptionItem v-if="claim.reason" label="Reason">
+            {{ claim.reason }}
+          </DescriptionItem>
+          <DescriptionItem label="Authority">
+            {{ unknownLabel(claim.authority) }}
+          </DescriptionItem>
+          <DescriptionItem label="Confidence">
+            {{ unknownLabel(claim.confidence) }}
+          </DescriptionItem>
+        </dl>
+      </div>
+    </section>
     <section v-if="relatedRows.length" class="mt-6">
       <h3 class="text-sm font-medium">Related operation</h3>
       <p class="text-muted-foreground mt-1 text-xs">
@@ -366,7 +439,10 @@ function evaluateTot() {
         </p>
         <h4 class="mt-3 text-sm font-medium">Dependencies requiring attention</h4>
         <ul class="mt-2 space-y-3">
-          <li v-for="finding in attentionFindings" :key="finding.objectId + finding.rule">
+          <li
+            v-for="finding in attentionFindings"
+            :key="finding.relationSourceId + finding.rule + finding.objectId"
+          >
             <p class="text-sm font-medium">{{ findingLabel(finding) }}</p>
             <p class="text-sm">{{ statusLabel(finding.status) }}</p>
             <p class="text-muted-foreground text-xs">{{ findingDetail(finding) }}</p>

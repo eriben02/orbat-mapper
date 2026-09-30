@@ -254,6 +254,7 @@ export const TIMESTAMP_NAMES = [
   "startTime",
   "tot",
   "effectAt",
+  "reportedAt",
 ];
 export type ScenarioEventType = "unit" | "scenario";
 export interface NScenarioEvent extends ScenarioEvent {
