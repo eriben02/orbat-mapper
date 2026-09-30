@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { type StyleValue, useTemplateRef } from "vue";
+import { type StyleValue, computed, useTemplateRef } from "vue";
 import { GlobalEvents } from "vue-global-events";
 import { MagnifyingGlassIcon } from "@heroicons/vue/24/solid";
 import { PanelLeftOpenIcon as ShowPanelIcon } from "@lucide/vue";
@@ -13,9 +13,13 @@ import MapEditorMobilePanel from "@/modules/scenarioeditor/MapEditorMobilePanel.
 import DetailsPanelContent from "@/modules/scenarioeditor/DetailsPanelContent.vue";
 import KeyboardScenarioActions from "@/modules/scenarioeditor/KeyboardScenarioActions.vue";
 import ScenarioTimeline from "@/modules/scenarioeditor/ScenarioTimeline.vue";
+import OperationTimeline from "@/modules/scenarioeditor/OperationTimeline.vue";
+import { formatScenarioClock } from "@/modules/scenarioeditor/operationTimelinePlan";
 import UnitBreadcrumbs from "@/modules/scenarioeditor/UnitBreadcrumbs.vue";
 import { useUiStore } from "@/stores/uiStore";
 import { useOverlayBottomInset } from "@/composables/useOverlayBottomInset";
+import { injectStrict } from "@/utils";
+import { activeScenarioKey } from "@/components/injects";
 
 withDefaults(
   defineProps<{
@@ -34,7 +38,7 @@ withDefaults(
     showSearchButton: true,
     showKeyboardActions: true,
     headerClass: "flex flex-none items-center justify-between sm:p-2",
-    headerControlsClass: "pointer-events-auto mr-2 sm:ml-2",
+    headerControlsClass: "pointer-events-auto mr-2 flex items-center sm:ml-2",
     headerControlsStyle: undefined,
     showBottomToolbar: false,
   },
@@ -54,6 +58,13 @@ const emit = defineEmits<{
 }>();
 
 const ui = useUiStore();
+const scenario = injectStrict(activeScenarioKey);
+const hasOperationalTimeline = computed(
+  () => (scenario.store.state.operationalObjectIds?.length ?? 0) > 0,
+);
+const scenarioClockText = computed(() =>
+  formatScenarioClock(scenario.store.state.currentTime),
+);
 const bottomToolbarRef = useTemplateRef("bottomToolbarRef");
 const bottomToolbarInset = useOverlayBottomInset(bottomToolbarRef);
 </script>
@@ -72,7 +83,14 @@ const bottomToolbarInset = useOverlayBottomInset(bottomToolbarRef);
         >
           <header :class="headerClass">
             <div class="ml-10 flex items-center sm:ml-8">
+              <p
+                v-if="hasOperationalTimeline"
+                class="pointer-events-none rounded bg-slate-950/90 px-2 py-1 text-xs font-medium tracking-wide text-slate-100"
+              >
+                {{ scenario.store.state.info.name }}
+              </p>
               <MapTimeController
+                v-else
                 class="pointer-events-auto ml-1"
                 :show-controls="false"
                 @open-time-modal="emit('openTimeModal')"
@@ -84,6 +102,13 @@ const bottomToolbarInset = useOverlayBottomInset(bottomToolbarRef);
               />
             </div>
             <div :class="headerControlsClass" :style="headerControlsStyle">
+              <p
+                v-if="hasOperationalTimeline"
+                data-scenario-clock
+                class="pointer-events-none mr-2 rounded bg-slate-950 px-2.5 py-1 font-mono text-xl font-medium text-slate-50 tabular-nums"
+              >
+                {{ scenarioClockText }}
+              </p>
               <slot name="header-right-before-search" />
               <IconButton
                 v-if="showSearchButton"
@@ -153,7 +178,8 @@ const bottomToolbarInset = useOverlayBottomInset(bottomToolbarRef);
     />
     <slot name="after-keyboard" />
     <UnitBreadcrumbs v-if="ui.showOrbatBreadcrumbs && !isMobile" />
-    <ScenarioTimeline v-if="ui.showTimeline" />
+    <OperationTimeline v-if="ui.showTimeline && hasOperationalTimeline" />
+    <ScenarioTimeline v-else-if="ui.showTimeline" />
     <slot name="modals" />
   </div>
 </template>
