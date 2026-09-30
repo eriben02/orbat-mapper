@@ -24,7 +24,7 @@ const DEMO_SCENARIOS = [
     name: "ROZ ALFA",
     id: "roz-alfa",
     summary:
-      "ROZ ALFA, 1200Z–1430Z, required by PACKAGE-21. The clock starts at 1100Z. Click the polygon, then open the package from Required by.",
+      "At 1300Z click ROZ ALFA, then navigate PACKAGE-21 → MISSION-04 → TARGET-17. Inverse relations are derived.",
     imageUrl: "/favicon.svg",
   },
 ];

@@ -30,12 +30,15 @@ const title = computed(
 const subtitle = computed(() => {
   const current = object.value;
   if (!current) return "";
-  return current.kind === "package" ? "Package" : current.type;
+  if (current.kind === "airspace") return current.type;
+  if (current.kind === "package") return "Package";
+  if (current.kind === "mission") return "Mission";
+  return "Target";
 });
 
-const packageName = computed(() => {
+const namedName = computed(() => {
   const current = object.value;
-  if (!current || current.kind !== "package") return "";
+  if (!current || current.kind === "airspace") return "";
   return current._state?.name ?? current.name;
 });
 
@@ -77,6 +80,14 @@ function relationLabel(type: string) {
       return "Required by";
     case "requires":
       return "Requires";
+    case "executed-by":
+      return "Executed by";
+    case "executes":
+      return "Executes";
+    case "targets":
+      return "Targets";
+    case "targeted-by":
+      return "Targeted by";
     case "source":
       return "Source";
     case "authority":
@@ -103,8 +114,8 @@ function openRelation(relation: PresentedRelation) {
       <template #subtitle>{{ subtitle }}</template>
     </DetailsPanelHeader>
     <dl class="mt-4 space-y-3">
-      <DescriptionItem v-if="object.kind === 'package'" label="Name">
-        {{ packageName }}
+      <DescriptionItem v-if="object.kind !== 'airspace'" label="Name">
+        {{ namedName }}
       </DescriptionItem>
       <DescriptionItem v-if="object.kind === 'airspace'" label="Altitude">
         {{ altitude }}

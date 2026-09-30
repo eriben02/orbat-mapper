@@ -5,7 +5,7 @@ import type { EntityId, ScenarioTime } from "@/types/base";
  * Discriminated by `kind`. Add a member here for the next domain object.
  * Do not collapse these into one object of optional fields.
  */
-export type OperationalObjectKind = "airspace" | "package";
+export type OperationalObjectKind = "airspace" | "package" | "mission" | "target";
 
 /**
  * One field for now. Authorization (PLANNED/APPROVED) and epistemic status
@@ -105,4 +105,22 @@ export interface OperationalPackage extends OperationalObjectBase {
   _state?: CurrentPackageState | null;
 }
 
-export type OperationalObject = AirspaceControlMeasure | OperationalPackage;
+export interface OperationalMission extends OperationalObjectBase {
+  kind: "mission";
+  name: string;
+  state?: PackageState[];
+  _state?: CurrentPackageState | null;
+}
+
+export interface OperationalTarget extends OperationalObjectBase {
+  kind: "target";
+  name: string;
+  state?: PackageState[];
+  _state?: CurrentPackageState | null;
+}
+
+/** Named objects share `name` and have no geometry in this experiment. */
+export type NamedOperationalObject =
+  OperationalPackage | OperationalMission | OperationalTarget;
+
+export type OperationalObject = AirspaceControlMeasure | NamedOperationalObject;

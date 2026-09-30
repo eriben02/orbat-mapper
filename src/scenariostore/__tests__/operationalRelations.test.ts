@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type {
   AirspaceControlMeasure,
+  OperationalMission,
   OperationalPackage,
+  OperationalTarget,
 } from "@/types/operationalModels";
 import {
   inverseRelationType,
@@ -10,6 +12,8 @@ import {
 
 const ROZ_ID = "roz-internal";
 const PKG_ID = "pkg-internal";
+const MISSION_ID = "mission-internal";
+const TARGET_ID = "target-internal";
 
 function roz(designator = "ROZ ALFA"): AirspaceControlMeasure {
   return {
@@ -52,6 +56,35 @@ function pkg(designator = "PACKAGE-21"): OperationalPackage {
   };
 }
 
+function mission(designator = "MISSION-04"): OperationalMission {
+  return {
+    id: MISSION_ID,
+    kind: "mission",
+    designator,
+    name: "Strike mission",
+    validFrom: 0,
+    validUntil: 1,
+    status: "PLANNED",
+    relations: [
+      { type: "executed-by", target: { kind: "package", id: PKG_ID } },
+      { type: "targets", target: { kind: "target", id: TARGET_ID } },
+    ],
+  };
+}
+
+function target(designator = "TARGET-17"): OperationalTarget {
+  return {
+    id: TARGET_ID,
+    kind: "target",
+    designator,
+    name: "Demo target",
+    validFrom: 0,
+    validUntil: 1,
+    status: "PLANNED",
+    relations: [],
+  };
+}
+
 describe("operational relations", () => {
   it("derives required-by and does not store that edge", () => {
     const zone = roz();
@@ -69,6 +102,8 @@ describe("operational relations", () => {
       false,
     );
     expect(inverseRelationType("requires")).toBe("required-by");
+    expect(inverseRelationType("executed-by")).toBe("executes");
+    expect(inverseRelationType("targets")).toBe("targeted-by");
     expect(inverseRelationType("observes")).toBe("inverse-of-observes");
   });
 
@@ -118,5 +153,53 @@ describe("operational relations", () => {
         navigable: false,
       }),
     ]);
+  });
+
+  it("derives executes and targeted-by from stored mission edges", () => {
+    const objects = [roz(), pkg(), mission(), target()];
+    const packageView = presentRelations(objects[1]!, objects);
+    const targetView = presentRelations(objects[3]!, objects);
+    const missionView = presentRelations(objects[2]!, objects);
+    expect(packageView.find((row) => row.type === "executes")).toMatchObject({
+      derived: true,
+      targetId: MISSION_ID,
+      label: "MISSION-04",
+    });
+    expect(targetView.find((row) => row.type === "targeted-by")).toMatchObject({
+      derived: true,
+      targetId: MISSION_ID,
+      label: "MISSION-04",
+    });
+    expect(objects[1]!.relations.some((relation) => relation.type === "executes")).toBe(
+      false,
+    );
+    expect(objects[3]!.relations).toEqual([]);
+    expect(missionView.find((row) => row.type === "executed-by")?.derived).toBe(false);
+    expect(missionView.find((row) => row.type === "targets")?.derived).toBe(false);
+  });
+
+  it("renaming mission or target designators does not change stored ids", () => {
+    const packageObject = pkg();
+    const missionObject = mission("MISSION-X");
+    const targetObject = target("TARGET-X");
+    const objects = [roz(), packageObject, missionObject, targetObject];
+    expect(
+      presentRelations(packageObject, objects).find((row) => row.type === "executes"),
+    ).toMatchObject({ label: "MISSION-X", targetId: MISSION_ID });
+    expect(
+      presentRelations(missionObject, objects).find((row) => row.type === "targets"),
+    ).toMatchObject({ label: "TARGET-X", targetId: TARGET_ID });
+    missionObject.designator = "MISSION-Y";
+    targetObject.designator = "TARGET-Y";
+    expect(missionObject.relations[0]?.target.id).toBe(PKG_ID);
+    expect(missionObject.relations[1]?.target.id).toBe(TARGET_ID);
+    expect(
+      presentRelations(packageObject, objects).find((row) => row.type === "executes")
+        ?.label,
+    ).toBe("MISSION-Y");
+    expect(
+      presentRelations(targetObject, objects).find((row) => row.type === "targeted-by")
+        ?.label,
+    ).toBe("MISSION-Y");
   });
 });

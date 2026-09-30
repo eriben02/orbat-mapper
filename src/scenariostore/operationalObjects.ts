@@ -4,8 +4,8 @@ import type {
   AirspaceControlMeasure,
   CurrentAirspaceControlMeasureState,
   CurrentPackageState,
+  NamedOperationalObject,
   OperationalObject,
-  OperationalPackage,
   OperationalStatePatch,
 } from "@/types/operationalModels";
 
@@ -46,8 +46,8 @@ export function projectAirspaceStateAt(
   );
 }
 
-export function projectPackageStateAt(
-  object: OperationalPackage,
+export function projectNamedObjectStateAt(
+  object: NamedOperationalObject,
   timestamp: number,
 ): CurrentPackageState {
   return foldState(
@@ -64,10 +64,13 @@ export function projectPackageStateAt(
   );
 }
 
+/** @deprecated Use projectNamedObjectStateAt. Package, mission and target share it. */
+export const projectPackageStateAt = projectNamedObjectStateAt;
+
 /**
  * Inclusive window. 1200Z and 1430Z are inside; 1100Z and 1431Z are outside.
  * Layer items use exclusive bounds. This is not those bounds.
- * Packages use the same window. There is still one scenario clock.
+ * Packages, missions and targets use the same window. There is still one scenario clock.
  */
 export function isOperationalObjectHiddenAt(
   projected: { validFrom?: number; validUntil?: number },
@@ -90,14 +93,17 @@ export function applyAirspaceProjection(
   object._hidden = isOperationalObjectHiddenAt(projected, timestamp);
 }
 
-export function applyPackageProjection(
-  object: OperationalPackage,
+export function applyNamedObjectProjection(
+  object: NamedOperationalObject,
   timestamp: number,
 ): void {
-  const projected = projectPackageStateAt(object, timestamp);
+  const projected = projectNamedObjectStateAt(object, timestamp);
   object._state = projected;
   object._hidden = isOperationalObjectHiddenAt(projected, timestamp);
 }
+
+/** @deprecated Use applyNamedObjectProjection. */
+export const applyPackageProjection = applyNamedObjectProjection;
 
 export function applyOperationalProjection(
   object: OperationalObject,
@@ -107,7 +113,7 @@ export function applyOperationalProjection(
     applyAirspaceProjection(object, timestamp);
     return;
   }
-  applyPackageProjection(object, timestamp);
+  applyNamedObjectProjection(object, timestamp);
 }
 
 export function operationalObjectToInternal<T extends OperationalObject>(object: T): T {

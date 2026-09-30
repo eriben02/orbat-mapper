@@ -11,6 +11,10 @@ import type { OperationalObject, OperationalRelation } from "@/types/operational
 const INVERSE_RELATION_TYPE: Record<string, string> = {
   requires: "required-by",
   "required-by": "requires",
+  "executed-by": "executes",
+  executes: "executed-by",
+  targets: "targeted-by",
+  "targeted-by": "targets",
 };
 
 export function inverseRelationType(type: string): string {
@@ -20,7 +24,7 @@ export function inverseRelationType(type: string): string {
 /** What the panel prints. A rename of `designator` changes this and nothing else. */
 export function operationalObjectLabel(object: OperationalObject): string {
   if (object.designator) return object.designator;
-  if (object.kind === "package" && object.name) return object.name;
+  if ("name" in object && object.name) return object.name;
   return object.id;
 }
 

@@ -7,7 +7,7 @@
     "lastModifiedDate": "2026-09-29T20:00:00.000Z"
   },
   "name": "ROZ ALFA",
-  "description": "Airspace control measure demo. The clock starts at 1100Z, so ROZ ALFA is hidden. Click the timeline events: 1200Z shows it, 1300Z keeps it, 1431Z hides it. Select the polygon, then open PACKAGE-21 from Required by. PACKAGE-21 requires ROZ ALFA; that inverse is not stored on the zone.",
+  "description": "A four-object operation. The clock starts at 1100Z. At 1300Z click ROZ ALFA, then navigate PACKAGE-21 → MISSION-04 → TARGET-17. Inverse edges are derived, not stored.",
   "startTime": "2026-01-15T11:00:00Z",
   "timeZone": "UTC",
   "symbologyStandard": "2525e",
@@ -97,6 +97,49 @@
       "state": [
         {
           "id": "stPackage21Planned01",
+          "t": "2026-01-15T12:00:00Z",
+          "patch": { "status": "PLANNED" }
+        }
+      ]
+    },
+    {
+      "id": "mS04QvR8sT0uYxZ4aB7cE",
+      "kind": "mission",
+      "designator": "MISSION-04",
+      "name": "Strike mission",
+      "validFrom": "2026-01-15T12:00:00Z",
+      "validUntil": "2026-01-15T16:00:00Z",
+      "status": "PLANNED",
+      "relations": [
+        {
+          "type": "executed-by",
+          "target": { "kind": "package", "id": "pK21QvR8sT0uYxZ4aB7cD" }
+        },
+        {
+          "type": "targets",
+          "target": { "kind": "target", "id": "tG17QvR8sT0uYxZ4aB7cF" }
+        }
+      ],
+      "state": [
+        {
+          "id": "stMission04Planned01",
+          "t": "2026-01-15T12:00:00Z",
+          "patch": { "status": "PLANNED" }
+        }
+      ]
+    },
+    {
+      "id": "tG17QvR8sT0uYxZ4aB7cF",
+      "kind": "target",
+      "designator": "TARGET-17",
+      "name": "Demo target",
+      "validFrom": "2026-01-15T12:00:00Z",
+      "validUntil": "2026-01-15T16:00:00Z",
+      "status": "PLANNED",
+      "relations": [],
+      "state": [
+        {
+          "id": "stTarget17Planned01",
           "t": "2026-01-15T12:00:00Z",
           "patch": { "status": "PLANNED" }
         }

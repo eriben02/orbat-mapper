@@ -19,6 +19,8 @@ vi.mock("@/stores/settingsStore", () => ({
 
 const ROZ_ID = "7N3kP0wQvR2sT8uYxZ4aB";
 const PKG_ID = "pK21QvR8sT0uYxZ4aB7cD";
+const MISSION_ID = "mS04QvR8sT0uYxZ4aB7cE";
+const TARGET_ID = "tG17QvR8sT0uYxZ4aB7cF";
 const T_1100 = Date.parse("2026-01-15T11:00:00Z");
 const T_1200 = Date.parse("2026-01-15T12:00:00Z");
 const T_1300 = Date.parse("2026-01-15T13:00:00Z");
@@ -203,5 +205,119 @@ describe("PACKAGE-21", () => {
       derived: true,
       navigable: true,
     });
+  });
+});
+
+describe("MISSION-04 and TARGET-17", () => {
+  it("loads mission and target as operational objects without geometry", () => {
+    const { store } = loadRoz();
+    const mission = store.state.operationalObjectMap[MISSION_ID];
+    const target = store.state.operationalObjectMap[TARGET_ID];
+    expect(mission?.kind).toBe("mission");
+    expect(target?.kind).toBe("target");
+    if (mission?.kind !== "mission" || target?.kind !== "target") {
+      throw new Error("expected mission and target");
+    }
+    expect(mission.designator).toBe("MISSION-04");
+    expect(mission.name).toBe("Strike mission");
+    expect(mission.id).not.toBe(mission.designator);
+    expect(mission).not.toHaveProperty("geometry");
+    expect(target.designator).toBe("TARGET-17");
+    expect(target.name).toBe("Demo target");
+    expect(target.id).not.toBe(target.designator);
+    expect(target).not.toHaveProperty("geometry");
+    expect(store.state.layerItemMap).toEqual({});
+    expect(mission.relations).toEqual([
+      { type: "executed-by", target: { kind: "package", id: PKG_ID } },
+      { type: "targets", target: { kind: "target", id: TARGET_ID } },
+    ]);
+    expect(target.relations).toEqual([]);
+  });
+
+  it("keeps all four objects active at 1300Z", () => {
+    const { store, time } = loadRoz();
+    time.setCurrentTime(T_1300);
+    const hidden = (id: string) => store.state.operationalObjectMap[id]?._hidden;
+    expect(hidden(ROZ_ID)).toBe(false);
+    expect(hidden(PKG_ID)).toBe(false);
+    expect(hidden(MISSION_ID)).toBe(false);
+    expect(hidden(TARGET_ID)).toBe(false);
+  });
+
+  it("persists mission edges and derives inverses after reload", () => {
+    const { store } = loadRoz();
+    const { serializeToObject } = useScenarioIO(shallowRef(store));
+    const serialized = serializeToObject();
+    const savedMission = serialized.operationalObjects?.find(
+      (item) => item.id === MISSION_ID,
+    );
+    const savedTarget = serialized.operationalObjects?.find(
+      (item) => item.id === TARGET_ID,
+    );
+    const savedPkg = serialized.operationalObjects?.find((item) => item.id === PKG_ID);
+    expect(savedMission?.kind).toBe("mission");
+    expect(savedTarget?.kind).toBe("target");
+    if (savedMission?.kind !== "mission" || savedTarget?.kind !== "target") {
+      throw new Error("expected saved mission and target");
+    }
+    expect(savedMission).not.toHaveProperty("_state");
+    expect(savedMission).not.toHaveProperty("_hidden");
+    expect(savedTarget).not.toHaveProperty("_state");
+    expect(savedMission.relations).toEqual([
+      { type: "executed-by", target: { kind: "package", id: PKG_ID } },
+      { type: "targets", target: { kind: "target", id: TARGET_ID } },
+    ]);
+    expect(savedTarget.relations).toEqual([]);
+    expect(savedPkg?.relations).toEqual([
+      { type: "requires", target: { kind: "airspace", id: ROZ_ID } },
+    ]);
+    expect(savedPkg?.relations?.some((relation) => relation.type === "executes")).toBe(
+      false,
+    );
+
+    const restored = useNewScenarioStore(serialized);
+    const objects = Object.values(restored.state.operationalObjectMap);
+    const mission = restored.state.operationalObjectMap[MISSION_ID];
+    const target = restored.state.operationalObjectMap[TARGET_ID];
+    const pkg = restored.state.operationalObjectMap[PKG_ID];
+    if (mission?.kind !== "mission" || target?.kind !== "target" || !pkg) {
+      throw new Error("restore failed");
+    }
+    expect(
+      presentRelations(mission, objects).find((row) => row.type === "executed-by"),
+    ).toMatchObject({
+      targetId: PKG_ID,
+      label: "PACKAGE-21",
+      derived: false,
+      navigable: true,
+    });
+    expect(
+      presentRelations(mission, objects).find((row) => row.type === "targets"),
+    ).toMatchObject({
+      targetId: TARGET_ID,
+      label: "TARGET-17",
+      derived: false,
+      navigable: true,
+    });
+    expect(
+      presentRelations(pkg, objects).find((row) => row.type === "executes"),
+    ).toMatchObject({
+      targetId: MISSION_ID,
+      label: "MISSION-04",
+      derived: true,
+      navigable: true,
+    });
+    expect(
+      presentRelations(target, objects).find((row) => row.type === "targeted-by"),
+    ).toMatchObject({
+      targetId: MISSION_ID,
+      label: "MISSION-04",
+      derived: true,
+      navigable: true,
+    });
+    expect(pkg.relations.some((relation) => relation.type === "executes")).toBe(false);
+    expect(target.relations.some((relation) => relation.type === "targeted-by")).toBe(
+      false,
+    );
   });
 });
