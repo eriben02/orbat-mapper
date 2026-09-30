@@ -253,7 +253,7 @@ async function evaluateTot() {
 
     <section
       v-if="expectationAttention.length"
-      class="rounded border-l-4 border-amber-600 bg-amber-50 p-3 dark:bg-amber-950/30"
+      class="sticky top-0 z-10 rounded border-l-4 border-amber-600 bg-amber-50 p-3 dark:bg-amber-950/30"
     >
       <h3 class="text-sm font-medium">Attention</h3>
       <p class="mt-1 text-xs">

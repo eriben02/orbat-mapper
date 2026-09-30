@@ -7,7 +7,7 @@
     "lastModifiedDate": "2026-09-29T20:00:00.000Z"
   },
   "name": "ROZ ALFA",
-  "description": "MISSION-04 is the plan. A report arrives at 1320Z. The TLAM effect is expected by 1346Z. Confirmation can arrive later than the event.",
+  "description": "MISSION-04 is the plan. The map shows PACKAGE-21 moving toward TARGET-17 inside ROZ ALFA. A report arrives at 1320Z. The TLAM effect is expected by 1346Z.",
   "startTime": "2026-01-15T13:00:00Z",
   "timeZone": "UTC",
   "symbologyStandard": "2525e",
@@ -120,6 +120,12 @@
       "kind": "package",
       "designator": "PACKAGE-21",
       "name": "UAV Support Package",
+      "route": [
+        { "t": "2026-01-15T13:00:00Z", "position": [13.9, 57.2] },
+        { "t": "2026-01-15T13:20:00Z", "position": [14.85, 57.65] },
+        { "t": "2026-01-15T13:40:00Z", "position": [15.45, 57.95] },
+        { "t": "2026-01-15T13:45:00Z", "position": [15.9, 58.1] }
+      ],
       "validFrom": "2026-01-15T12:00:00Z",
       "validUntil": "2026-01-15T16:00:00Z",
       "status": "PLANNED",
@@ -194,6 +200,7 @@
       "kind": "target",
       "designator": "TARGET-17",
       "name": "Demo target",
+      "position": [16.15, 58.2],
       "validFrom": "2026-01-15T12:00:00Z",
       "validUntil": "2026-01-15T16:00:00Z",
       "status": "PLANNED",
@@ -296,6 +303,6 @@
     "supplyUoMs": [],
     "symbolFillColors": [],
     "map": { "baseMapId": "osm" },
-    "boundingBox": [14.2, 57.2, 16.8, 59.1]
+    "boundingBox": [13.65, 56.95, 16.85, 59.05]
   }
 }

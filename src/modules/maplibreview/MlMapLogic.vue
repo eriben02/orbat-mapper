@@ -32,6 +32,14 @@ import {
   isManagedScenarioFeatureLayerId,
 } from "@/modules/maplibreview/maplibreScenarioFeatures";
 import { buildAirspaceRenderPlan } from "@/modules/maplibreview/airspaceRenderPlan";
+import {
+  buildOperationMapPlan,
+  OPERATION_LABEL_LAYER_ID,
+  OPERATION_POINT_LAYER_ID,
+  OPERATION_POINT_LAYER_IDS,
+  OPERATION_ROUTE_LAYER_ID,
+  OPERATION_SOURCE_ID,
+} from "@/modules/maplibreview/operationMapPlan";
 import { getClaimsForSubject } from "@/scenariostore/operationalClaims";
 import {
   isMapLibreKmlRenderedLayerId,
@@ -553,8 +561,98 @@ function pickAirspaceAt(point: PointLike) {
   return objectId ? String(objectId) : undefined;
 }
 
+function setupOperationMapLayers() {
+  if (mlMap.getSource(OPERATION_SOURCE_ID)) return;
+  mlMap.addSource(OPERATION_SOURCE_ID, {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+  mlMap.addLayer({
+    id: OPERATION_ROUTE_LAYER_ID,
+    type: "line",
+    source: OPERATION_SOURCE_ID,
+    filter: ["==", ["get", "role"], "route"],
+    paint: {
+      "line-color": ["case", ["get", "selected"], "#b45309", "#334155"],
+      "line-width": ["case", ["get", "selected"], 2.5, 1.5],
+      "line-dasharray": [1.2, 1.2],
+      "line-opacity": 0.85,
+    },
+  });
+  mlMap.addLayer({
+    id: OPERATION_POINT_LAYER_ID,
+    type: "circle",
+    source: OPERATION_SOURCE_ID,
+    filter: ["==", ["get", "role"], "position"],
+    paint: {
+      "circle-color": [
+        "case",
+        ["get", "selected"],
+        "#b45309",
+        ["==", ["get", "kind"], "target"],
+        "#7f1d1d",
+        "#1e3a8a",
+      ],
+      "circle-radius": [
+        "case",
+        ["get", "selected"],
+        8,
+        ["==", ["get", "kind"], "target"],
+        6,
+        7,
+      ],
+      "circle-stroke-color": "#ffffff",
+      "circle-stroke-width": 2,
+    },
+  });
+  mlMap.addLayer({
+    id: OPERATION_LABEL_LAYER_ID,
+    type: "symbol",
+    source: OPERATION_SOURCE_ID,
+    filter: ["==", ["get", "role"], "position"],
+    layout: {
+      "text-field": ["get", "designator"],
+      "text-font": ["Noto Sans Italic"],
+      "text-size": 12,
+      "text-offset": [0, 1.15],
+      "text-anchor": "top",
+      "text-allow-overlap": true,
+    },
+    paint: {
+      "text-color": "#0f172a",
+      "text-halo-color": "#ffffff",
+      "text-halo-width": 1.5,
+    },
+  });
+}
+
+function syncOperationMap() {
+  const source = mlMap.getSource(OPERATION_SOURCE_ID) as GeoJSONSource | undefined;
+  if (!source) return;
+  source.setData(
+    buildOperationMapPlan(
+      Object.values(activeScenario.store.state.operationalObjectMap ?? {}),
+      {
+        filterVisible: true,
+        selectedIds: new Set(
+          selectedOperationalObjectId.value ? [selectedOperationalObjectId.value] : [],
+        ),
+        currentTime: activeScenario.store.state.currentTime,
+      },
+    ),
+  );
+}
+
+function pickOperationPointAt(point: PointLike) {
+  if (!mlMap.getLayer(OPERATION_POINT_LAYER_ID)) return;
+  const hits = mlMap.queryRenderedFeatures(point, { layers: OPERATION_POINT_LAYER_IDS });
+  const objectId = hits[0]?.properties?.objectId;
+  return objectId ? String(objectId) : undefined;
+}
+
 function setupMapLayers() {
   setupAirspaceLayers();
+  setupOperationMapLayers();
   !mlMap.getSource("unitSource") &&
     mlMap.addSource("unitSource", {
       type: "geojson",
@@ -662,6 +760,7 @@ function onStyleLoad() {
     filterVisible: !doNotFilterLayers.value,
   });
   syncAirspace();
+  syncOperationMap();
   shouldCenterOnNextStyleLoad = false;
 }
 
@@ -930,6 +1029,9 @@ function getShiftClickTarget(e: MouseEvent): ShiftClickTarget | undefined {
       : undefined;
   }
 
+  // An operational marker sits on the airspace. It must not shift-select the shape under it.
+  if (pickOperationPointAt(pixel)) return;
+
   // An airspace fill must not shift-select the plain shape underneath it.
   if (pickAirspaceAt(pixel)) return;
 
@@ -1052,6 +1154,14 @@ function onMapClick(e: MapMouseEvent) {
   // Keep move mode's unit/empty-map behavior after resolving control measures.
   if (moveUnitEnabled.value) return;
 
+  const operationId = pickOperationPointAt(e.point);
+  if (operationId) {
+    if (!featureSelectEnabled.value) return;
+    if (additive) return;
+    selectedOperationalObjectId.value = operationId;
+    return;
+  }
+
   const airspaceId = pickAirspaceAt(e.point);
   if (airspaceId) {
     if (!featureSelectEnabled.value) return;
@@ -1143,10 +1253,15 @@ function onMapMouseMove(e: MapMouseEvent) {
     updateHoveredScenarioFeatures([], e);
     return;
   }
-  // Units outrank the airspace fill, matching the click path. A polygon covering a
-  // formation must not hide unit hover. The window is inclusive of the exact point
-  // only; nearby plain features still hover when the pointer is outside the fill.
-  if (!(topHit && isUnitLayerId(topHit.layer.id)) && pickAirspaceAt(e.point)) {
+  // Units outrank operational markers and the airspace fill. A marker or polygon
+  // covering a formation must not hide unit hover.
+  const unitOnTop = Boolean(topHit && isUnitLayerId(topHit.layer.id));
+  if (!unitOnTop && pickOperationPointAt(e.point)) {
+    mlMap.getCanvas().style.cursor = "pointer";
+    updateHoveredScenarioFeatures([], e);
+    return;
+  }
+  if (!unitOnTop && pickAirspaceAt(e.point)) {
     mlMap.getCanvas().style.cursor = "pointer";
     updateHoveredScenarioFeatures([], e);
     return;
@@ -1313,7 +1428,10 @@ watch(
     () => activeScenario.store.state.currentTime,
     () => selectedOperationalObjectId.value,
   ],
-  () => syncAirspace(),
+  () => {
+    syncAirspace();
+    syncOperationMap();
+  },
 );
 
 watch(

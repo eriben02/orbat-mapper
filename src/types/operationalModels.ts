@@ -117,10 +117,21 @@ export interface PackageStatePatch extends OperationalStatePatch {
 export type PackageState = OperationalObjectState<PackageStatePatch>;
 export type CurrentPackageState = PackageStatePatch & { t: ScenarioTime };
 
+/** One planned position on a package route. `t` is scenario time, not a second clock. */
+export interface PackageRoutePoint {
+  t: ScenarioTime;
+  position: [number, number];
+}
+
 export interface OperationalPackage extends OperationalObjectBase {
   kind: "package";
   /** Human description. Not the primary key, and not copied onto relations. */
   name: string;
+  /**
+   * Planned route. The position at a clock is projected from these points.
+   * Not a unit track and not a layer item.
+   */
+  route?: PackageRoutePoint[];
   state?: PackageState[];
   _state?: CurrentPackageState | null;
 }
@@ -137,6 +148,8 @@ export interface OperationalMission extends OperationalObjectBase {
 export interface OperationalTarget extends OperationalObjectBase {
   kind: "target";
   name: string;
+  /** Fixed represented position. Not a layer item. */
+  position?: [number, number];
   state?: PackageState[];
   _state?: CurrentPackageState | null;
 }
@@ -169,7 +182,7 @@ export interface OperationalAssessment extends OperationalObjectBase {
   _state?: CurrentPackageState | null;
 }
 
-/** Named objects share `name` and have no geometry in this experiment. */
+/** Named objects share `name`. Only package and target carry geography, on their own types. */
 export type NamedOperationalObject =
   | OperationalPackage
   | OperationalMission

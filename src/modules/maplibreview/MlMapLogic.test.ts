@@ -1786,6 +1786,78 @@ describe("MlMapLogic", () => {
     useSelectedItems().clear();
   });
 
+  it("selects the package operational object from its map marker", () => {
+    const mockMap = createMockMap();
+    mountMlMapLogic({
+      mockMap,
+      activeScenario: createHoverScenario(() => ({ layerItem: undefined })),
+    });
+    mockMap.map.queryRenderedFeatures.mockImplementation(
+      (_geometry: unknown, options: { layers?: string[] } | undefined) => {
+        const layers = options?.layers ?? [];
+        if (layers.includes("operation-point")) {
+          return [
+            {
+              layer: { id: "operation-point" },
+              properties: { objectId: "pK21QvR8sT0uYxZ4aB7cD" },
+            },
+          ];
+        }
+        if (layers.includes("airspace-fill")) {
+          return [
+            {
+              layer: { id: "airspace-fill" },
+              properties: { objectId: "roz-1" },
+            },
+          ];
+        }
+        return [];
+      },
+    );
+
+    mockMap.emit("click", {
+      point: { x: 12, y: 20 },
+      originalEvent: { shiftKey: false },
+    });
+
+    expect(useSelectedItems().selectedOperationalObjectId.value).toBe(
+      "pK21QvR8sT0uYxZ4aB7cD",
+    );
+    useSelectedItems().clear();
+  });
+
+  it("selects the target operational object from its map marker", () => {
+    const mockMap = createMockMap();
+    mountMlMapLogic({
+      mockMap,
+      activeScenario: createHoverScenario(() => ({ layerItem: undefined })),
+    });
+    mockMap.map.queryRenderedFeatures.mockImplementation(
+      (_geometry: unknown, options: { layers?: string[] } | undefined) => {
+        const layers = options?.layers ?? [];
+        if (layers.includes("operation-point")) {
+          return [
+            {
+              layer: { id: "operation-label" },
+              properties: { objectId: "tG17QvR8sT0uYxZ4aB7cF" },
+            },
+          ];
+        }
+        return [];
+      },
+    );
+
+    mockMap.emit("click", {
+      point: { x: 12, y: 20 },
+      originalEvent: { shiftKey: false },
+    });
+
+    expect(useSelectedItems().selectedOperationalObjectId.value).toBe(
+      "tG17QvR8sT0uYxZ4aB7cF",
+    );
+    useSelectedItems().clear();
+  });
+
   it("opens rendered KML features as reference feature details on click", () => {
     const mockMap = createMockMap();
     useMapSelectStore().unitSelectEnabled = false;

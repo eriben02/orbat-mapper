@@ -24,7 +24,7 @@ const DEMO_SCENARIOS = [
     name: "ROZ ALFA",
     id: "roz-alfa",
     summary:
-      "MISSION-04, target TARGET-17, flown by PACKAGE-21, TOT 1345Z. A report arrives at 1320Z. The what-if is on the mission.",
+      "MISSION-04. The map shows PACKAGE-21 moving toward TARGET-17 inside ROZ ALFA.",
     imageUrl: "/favicon.svg",
   },
 ];

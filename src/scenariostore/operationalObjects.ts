@@ -8,6 +8,7 @@ import type {
   OperationalObject,
   OperationalRelation,
   OperationalStatePatch,
+  PackageRoutePoint,
 } from "@/types/operationalModels";
 
 function foldState<TPatch extends OperationalStatePatch>(
@@ -117,6 +118,15 @@ export function applyOperationalProjection(
   applyNamedObjectProjection(object, timestamp);
 }
 
+function routeToInternal(
+  route: PackageRoutePoint[] | undefined,
+): PackageRoutePoint[] | undefined {
+  if (!route) return route;
+  return route
+    .map((point) => ({ ...point, t: +dayjs(point.t) }))
+    .sort((a, b) => Number(a.t) - Number(b.t));
+}
+
 function relationsToInternal(
   relations: OperationalRelation[] | undefined,
 ): OperationalRelation[] | undefined {
@@ -143,12 +153,14 @@ export function operationalObjectToInternal<T extends OperationalObject>(object:
     .sort((a, b) => a.t - b.t);
   const tot = "tot" in object && object.tot != null ? +dayjs(object.tot) : undefined;
   const relations = relationsToInternal(object.relations);
+  const route = object.kind === "package" ? routeToInternal(object.route) : undefined;
   return {
     ...object,
     validFrom: +dayjs(object.validFrom),
     validUntil: +dayjs(object.validUntil),
     ...(relations ? { relations } : {}),
     ...(tot != null ? { tot } : {}),
+    ...(route ? { route } : {}),
     ...(state ? { state } : {}),
   } as T;
 }
