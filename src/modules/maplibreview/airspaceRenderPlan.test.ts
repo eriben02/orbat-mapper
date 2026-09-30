@@ -76,5 +76,17 @@ describe("buildAirspaceRenderPlan", () => {
     });
     expect(plan.features).toHaveLength(1);
     expect(plan.features[0]?.properties.selected).toBe(false);
+    expect(plan.features[0]?.properties.report).toBe(false);
+  });
+
+  it("marks a known report without changing the represented status", () => {
+    const object = roz(false);
+    const plan = buildAirspaceRenderPlan([object], {
+      filterVisible: true,
+      selectedIds: new Set(),
+      reportedIds: new Set([object.id]),
+    });
+    expect(plan.features[0]?.properties.report).toBe(true);
+    expect(plan.features[0]?.properties.status).toBe("PLANNED");
   });
 });

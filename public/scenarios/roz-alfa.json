@@ -7,46 +7,46 @@
     "lastModifiedDate": "2026-09-29T20:00:00.000Z"
   },
   "name": "ROZ ALFA",
-  "description": "At 1345Z select ROZ ALFA. Its state stays PLANNED. A separate claim from AIRSPACE-CELL says UNAVAILABLE 1330Z–1400Z. That claim is not object state.",
-  "startTime": "2026-01-15T11:00:00Z",
+  "description": "MISSION-04 is the plan. The map shows its airspace. A report arrives at 1320Z. Propose a new TOT from the mission panel.",
+  "startTime": "2026-01-15T13:00:00Z",
   "timeZone": "UTC",
   "symbologyStandard": "2525e",
   "sides": [],
   "events": [
     {
-      "id": "evtRozAlfa1100Z00001",
-      "title": "1100Z",
-      "startTime": "2026-01-15T11:00:00Z"
-    },
-    {
-      "id": "evtRozAlfa1200Z00001",
-      "title": "1200Z",
-      "startTime": "2026-01-15T12:00:00Z"
-    },
-    {
       "id": "evtRozAlfa1300Z00001",
-      "title": "1300Z",
+      "title": "1300Z Operation in progress",
       "startTime": "2026-01-15T13:00:00Z"
     },
     {
-      "id": "evtRozAlfa1325Z00001",
-      "title": "1325Z",
-      "startTime": "2026-01-15T13:25:00Z"
+      "id": "evtRozAlfa1320Z00001",
+      "title": "1320Z AIRSPACE-CELL report",
+      "startTime": "2026-01-15T13:20:00Z"
+    },
+    {
+      "id": "evtRozAlfa1330Z00001",
+      "title": "1330Z Claimed ROZ window",
+      "startTime": "2026-01-15T13:30:00Z"
+    },
+    {
+      "id": "evtRozAlfa1335Z00001",
+      "title": "1335Z SEAD-03 effect window",
+      "startTime": "2026-01-15T13:35:00Z"
+    },
+    {
+      "id": "evtRozAlfa1343Z00001",
+      "title": "1343Z TLAM-STRIKE-07 effect",
+      "startTime": "2026-01-15T13:43:00Z"
     },
     {
       "id": "evtRozAlfa1345Z00001",
-      "title": "1345Z",
+      "title": "1345Z MISSION-04 TOT",
       "startTime": "2026-01-15T13:45:00Z"
     },
     {
-      "id": "evtRozAlfa1410Z00001",
-      "title": "1410Z",
-      "startTime": "2026-01-15T14:10:00Z"
-    },
-    {
-      "id": "evtRozAlfa1431Z00001",
-      "title": "1431Z",
-      "startTime": "2026-01-15T14:31:00Z"
+      "id": "evtRozAlfa1400Z00001",
+      "title": "1400Z Claimed window ends",
+      "startTime": "2026-01-15T14:00:00Z"
     }
   ],
   "layerStack": [

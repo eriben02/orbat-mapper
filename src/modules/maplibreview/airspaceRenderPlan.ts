@@ -8,12 +8,16 @@ export interface AirspaceRenderProperties {
   status: string;
   purpose: string;
   selected: boolean;
+  /** A known claim exists. This is not an availability state. */
+  report: boolean;
 }
 
 export interface AirspaceRenderPlanOptions {
   /** Drop measures whose projected window does not contain the clock. */
   filterVisible: boolean;
   selectedIds: ReadonlySet<string>;
+  /** Object ids that have a claim known at the current time. */
+  reportedIds?: ReadonlySet<string>;
 }
 
 /**
@@ -40,6 +44,7 @@ export function buildAirspaceRenderPlan(
         status: projected?.status ?? object.status,
         purpose: projected?.purpose ?? object.purpose ?? "",
         selected: options.selectedIds.has(object.id),
+        report: options.reportedIds?.has(object.id) ?? false,
       },
     });
   }

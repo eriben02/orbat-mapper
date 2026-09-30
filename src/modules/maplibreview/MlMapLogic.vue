@@ -32,6 +32,7 @@ import {
   isManagedScenarioFeatureLayerId,
 } from "@/modules/maplibreview/maplibreScenarioFeatures";
 import { buildAirspaceRenderPlan } from "@/modules/maplibreview/airspaceRenderPlan";
+import { getClaimsForSubject } from "@/scenariostore/operationalClaims";
 import {
   isMapLibreKmlRenderedLayerId,
   toReferenceFeatureSelection,
@@ -487,7 +488,14 @@ function setupAirspaceLayers() {
     type: "line",
     source: AIRSPACE_SOURCE_ID,
     paint: {
-      "line-color": ["case", ["get", "selected"], "#b45309", "#075985"],
+      "line-color": [
+        "case",
+        ["get", "selected"],
+        "#b45309",
+        ["get", "report"],
+        "#6d28d9",
+        "#075985",
+      ],
       "line-width": ["case", ["get", "selected"], 3, 2],
       "line-dasharray": [2, 1.5],
     },
@@ -497,7 +505,12 @@ function setupAirspaceLayers() {
     type: "symbol",
     source: AIRSPACE_SOURCE_ID,
     layout: {
-      "text-field": ["get", "designator"],
+      "text-field": [
+        "case",
+        ["get", "report"],
+        ["concat", ["get", "designator"], " · report"],
+        ["get", "designator"],
+      ],
       "text-font": ["Noto Sans Italic"],
       "text-size": 13,
       "text-allow-overlap": true,
@@ -514,12 +527,21 @@ function syncAirspace() {
   const source = mlMap.getSource(AIRSPACE_SOURCE_ID) as GeoJSONSource | undefined;
   if (!source) return;
   const objects = Object.values(activeScenario.store.state.operationalObjectMap ?? {});
+  const time = activeScenario.store.state.currentTime;
+  const claims = activeScenario.store.state.operationalClaims ?? [];
+  const reportedIds = new Set<string>();
+  for (const object of objects) {
+    if (getClaimsForSubject(object.id, claims, time).some((claim) => claim.known)) {
+      reportedIds.add(object.id);
+    }
+  }
   source.setData(
     buildAirspaceRenderPlan(objects, {
       filterVisible: true,
       selectedIds: new Set(
         selectedOperationalObjectId.value ? [selectedOperationalObjectId.value] : [],
       ),
+      reportedIds,
     }),
   );
 }
@@ -1288,6 +1310,7 @@ watch(
 watch(
   [
     () => activeScenario.store.state.operationalStateCounter,
+    () => activeScenario.store.state.currentTime,
     () => selectedOperationalObjectId.value,
   ],
   () => syncAirspace(),

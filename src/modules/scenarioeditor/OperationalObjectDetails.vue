@@ -17,10 +17,18 @@ import {
 import {
   evaluateProposedTot,
   type EvaluationFinding,
-  type EvaluationStatus,
   type ProposedChangeEvaluation,
 } from "@/scenariostore/operationalChange";
 import DetailsPanelHeader from "@/modules/scenarioeditor/DetailsPanelHeader.vue";
+import {
+  evaluationFindingDetail,
+  evaluationStatusLabel,
+  formatZulu,
+} from "@/modules/scenarioeditor/evaluationPresentation";
+import {
+  buildDemoMissionOverview,
+  isDemoOperation,
+} from "@/modules/scenarioeditor/demoMissionView";
 import PanelTitle from "@/modules/scenarioeditor/PanelTitle.vue";
 import DescriptionItem from "@/components/DescriptionItem.vue";
 
@@ -158,10 +166,14 @@ const relatedRows = computed(() => {
   return rows;
 });
 
-function formatZulu(timestamp: number | undefined) {
-  if (timestamp === undefined) return "";
-  return dayjs.utc(timestamp).format("HHmm[Z]");
-}
+const missionHome = computed(() => {
+  if (!isDemoOperation(state.id)) return null;
+  return buildDemoMissionOverview(
+    Object.values(state.operationalObjectMap),
+    state.operationalClaims ?? [],
+    state.currentTime,
+  );
+});
 
 function relationLabel(type: string) {
   switch (type) {
@@ -206,75 +218,13 @@ function openRelated(targetId: string, navigable: boolean) {
   selectedOperationalObjectId.value = targetId;
 }
 
-function factValue(finding: EvaluationFinding, key: string) {
-  return finding.facts.find((item) => item.key === key)?.value;
-}
-
-function statusLabel(status: EvaluationStatus) {
-  switch (status) {
-    case "CONFLICT":
-      return "Conflict";
-    case "CHANGED":
-      return "Changed";
-    case "REVIEW_REQUIRED":
-      return "Review required";
-    case "UNKNOWN":
-      return "Unknown";
-    case "CLAIM_PRESENT":
-      return "Claim present";
-    default:
-      return "Satisfied";
-  }
-}
-
 function findingLabel(finding: EvaluationFinding) {
   const target = state.operationalObjectMap[finding.objectId];
   return target?._state?.designator ?? target?.designator ?? finding.objectId;
 }
 
-function findingDetail(finding: EvaluationFinding) {
-  const proposed = formatZulu(factValue(finding, "proposed") as number);
-  const from = formatZulu(factValue(finding, "windowFrom") as number);
-  const until = formatZulu(factValue(finding, "windowUntil") as number);
-  switch (finding.rule) {
-    case "effect-window-contains-instant":
-      return finding.status === "CONFLICT"
-        ? `${proposed} is outside effect window ${from}–${until}`
-        : `${proposed} is inside effect window ${from}–${until}`;
-    case "effect-window-missing":
-      return "Effect window is not represented.";
-    case "dependency-target-missing":
-      return "The dependency target is not in the scenario.";
-    case "synchronization-instant-not-moved":
-      return `Represented effect at ${formatZulu(factValue(finding, "effectAt") as number)} is unchanged. Synchronization must be reviewed.`;
-    case "insufficient-model-for-recomputation": {
-      const factors = finding.facts
-        .filter((item) => item.key === "unresolvedFactor")
-        .map((item) => item.value)
-        .join(", ");
-      return factors
-        ? `Feasibility cannot be calculated. Missing: ${factors}.`
-        : "Feasibility cannot be calculated from the current model.";
-    }
-    case "timing-assumption-not-recomputed":
-      return "The assessment is tied to the original timing. The model cannot calculate the effect of the change.";
-    case "requires-does-not-state-usability": {
-      const validityFrom = formatZulu(factValue(finding, "validityFrom") as number);
-      const validityUntil = formatZulu(factValue(finding, "validityUntil") as number);
-      const inside = factValue(finding, "proposedInsideValidity");
-      if (inside === true) {
-        return `Proposed time is inside the represented validity window ${validityFrom}–${validityUntil}. Usability for the mission is not represented.`;
-      }
-      if (inside === false) {
-        return `Proposed time is outside the represented validity window ${validityFrom}–${validityUntil}. Usability for the mission is not represented.`;
-      }
-      return "No time constraint is represented for this requirement.";
-    }
-    case "availability-claim-present":
-      return `A claim says ${String(factValue(finding, "value"))}. It is not object state.`;
-    default:
-      return finding.rule;
-  }
+function returnToMission() {
+  selectedOperationalObjectId.value = null;
 }
 
 function evaluateTot() {
@@ -321,6 +271,14 @@ function predicateLabel(predicate: string) {
 
 <template>
   <div v-if="object" class="p-4">
+    <button
+      v-if="missionHome && missionHome.missionId !== object.id"
+      type="button"
+      class="mb-3 text-sm hover:underline"
+      @click="returnToMission"
+    >
+      ← {{ missionHome.designator }}
+    </button>
     <DetailsPanelHeader density="compact">
       <template #title>
         <PanelTitle>{{ title }}</PanelTitle>
@@ -444,8 +402,10 @@ function predicateLabel(predicate: string) {
             :key="finding.relationSourceId + finding.rule + finding.objectId"
           >
             <p class="text-sm font-medium">{{ findingLabel(finding) }}</p>
-            <p class="text-sm">{{ statusLabel(finding.status) }}</p>
-            <p class="text-muted-foreground text-xs">{{ findingDetail(finding) }}</p>
+            <p class="text-sm">{{ evaluationStatusLabel(finding.status) }}</p>
+            <p class="text-muted-foreground text-xs">
+              {{ evaluationFindingDetail(finding) }}
+            </p>
           </li>
         </ul>
       </div>

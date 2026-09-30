@@ -119,7 +119,7 @@ describe("ROZ ALFA projection", () => {
       lower: { system: "FL", value: 100 },
       upper: { system: "FL", value: 280 },
     });
-    expect(again._hidden).toBe(true);
+    expect(again._hidden).toBe(false);
     expect(restored.state.layerItemMap).toEqual({});
   });
 });

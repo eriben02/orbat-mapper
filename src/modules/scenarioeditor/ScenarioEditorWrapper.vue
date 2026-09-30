@@ -10,6 +10,7 @@ import ScenarioNotFoundPage from "@/modules/scenarioeditor/ScenarioNotFoundPage.
 import type { Scenario } from "@/types/scenarioModels";
 import ScenarioDraftRecoveryModal from "@/modules/scenarioeditor/ScenarioDraftRecoveryModal.vue";
 import ScenarioLeavePromptModal from "@/modules/scenarioeditor/ScenarioLeavePromptModal.vue";
+import { isDemoOperation } from "@/modules/scenarioeditor/demoMissionView";
 
 const props = defineProps<{ scenarioId: string }>();
 
@@ -66,7 +67,7 @@ async function loadScenarioForEditor(scenarioId: string) {
     if (demoId !== currentDemo) {
       const demoScenario = await scenario.value.io.loadDemoScenario(demoId);
       if (demoScenario) {
-        showScenarioInfo();
+        if (!isDemoOperation(demoScenario.id)) showScenarioInfo();
         await maybePromptForDraftRecovery(demoScenario);
       }
     }

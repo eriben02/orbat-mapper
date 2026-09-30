@@ -14,6 +14,10 @@ import PanelResizeHandle from "@/components/PanelResizeHandle.vue";
 import ScenarioSettingsPanel from "@/modules/scenarioeditor/ScenarioSettingsPanel.vue";
 import ScrollTabs from "@/components/ScrollTabs.vue";
 import OrbatPanelFooterToolbar from "@/modules/scenarioeditor/OrbatPanelFooterToolbar.vue";
+import DemoMissionOverview from "@/modules/scenarioeditor/DemoMissionOverview.vue";
+import { isDemoOperation } from "@/modules/scenarioeditor/demoMissionView";
+import { injectStrict } from "@/utils";
+import { activeScenarioKey } from "@/components/injects";
 
 const ScenarioFiltersTabPanel = defineAsyncComponent(
   () => import("@/modules/scenarioeditor/ScenarioFiltersTabPanel.vue"),
@@ -23,6 +27,14 @@ const ScenarioToolsTabPanel = defineAsyncComponent(
 );
 
 const emit = defineEmits(["close"]);
+
+const scenario = injectStrict(activeScenarioKey);
+const demoOperation = computed(() => isDemoOperation(scenario.store.state.id));
+const tabItems = computed(() =>
+  demoOperation.value
+    ? ["Operation", "Events", "Layers", "Settings", "Select", "Tools"]
+    : ["ORBAT", "Events", "Layers", "Settings", "Select", "Tools"],
+);
 
 const { activeScenarioEventId } = useSelectedItems();
 
@@ -49,7 +61,7 @@ function onEventClick(scenarioEvent: ScenarioEvent) {
   >
     <ScrollTabs
       v-model="activeTabIndexString"
-      :items="['ORBAT', 'Events', 'Layers', 'Settings', 'Select', 'Tools']"
+      :items="tabItems"
       as="div"
       class="hover-none:mr-3 bg-sidebar"
       :class="{ hidden: !showBottomPanel }"
@@ -59,9 +71,10 @@ function onEventClick(scenarioEvent: ScenarioEvent) {
       </template>
       <TabsContent value="0" class="flex h-full flex-col">
         <div class="min-h-0 flex-1 overflow-y-auto">
-          <OrbatPanel />
+          <DemoMissionOverview v-if="demoOperation" />
+          <OrbatPanel v-else />
         </div>
-        <OrbatPanelFooterToolbar />
+        <OrbatPanelFooterToolbar v-if="!demoOperation" />
       </TabsContent>
       <TabsContent value="1" class="p-4 pb-10">
         <ScenarioEventsPanel @event-click="onEventClick" />

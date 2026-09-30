@@ -24,7 +24,7 @@ const DEMO_SCENARIOS = [
     name: "ROZ ALFA",
     id: "roz-alfa",
     summary:
-      "At 1300Z click ROZ ALFA, then navigate PACKAGE-21 → MISSION-04 → TARGET-17. Inverse relations are derived.",
+      "MISSION-04, target TARGET-17, flown by PACKAGE-21, TOT 1345Z. A report arrives at 1320Z. The what-if is on the mission.",
     imageUrl: "/favicon.svg",
   },
 ];

@@ -17,6 +17,10 @@ import ScrollTabs from "@/components/ScrollTabs.vue";
 import { GripHorizontal } from "@lucide/vue";
 import OrbatPanelFooterToolbar from "@/modules/scenarioeditor/OrbatPanelFooterToolbar.vue";
 import DetailsPanelContent from "@/modules/scenarioeditor/DetailsPanelContent.vue";
+import DemoMissionOverview from "@/modules/scenarioeditor/DemoMissionOverview.vue";
+import { isDemoOperation } from "@/modules/scenarioeditor/demoMissionView";
+import { injectStrict } from "@/utils";
+import { activeScenarioKey } from "@/components/injects";
 
 const ScenarioFiltersTabPanel = defineAsyncComponent(
   () => import("@/modules/scenarioeditor/ScenarioFiltersTabPanel.vue"),
@@ -35,6 +39,13 @@ const emit = defineEmits([
 ]);
 
 const { activeDetailsPanel } = useSelectedItems();
+const scenario = injectStrict(activeScenarioKey);
+const demoOperation = computed(() => isDemoOperation(scenario.store.state.id));
+const tabItems = computed(() =>
+  demoOperation.value
+    ? ["Operation", "Events", "Layers", "Settings", "Select", "Tools", "Details"]
+    : ["ORBAT", "Events", "Layers", "Settings", "Select", "Tools", "Details"],
+);
 const toolbarStore = useMainToolbarStore();
 const uiStore = useUiStore();
 const {
@@ -173,7 +184,7 @@ const throttledResizePointerMove = useThrottleFn(onResizePointerMove, 16, false)
     </div>
     <ScrollTabs
       v-model="activeTabIndexString"
-      :items="['ORBAT', 'Events', 'Layers', 'Settings', 'Select', 'Tools', 'Details']"
+      :items="tabItems"
       class="min-h-0 flex-1"
       :class="{ hidden: !showBottomPanel }"
     >
@@ -181,8 +192,11 @@ const throttledResizePointerMove = useThrottleFn(onResizePointerMove, 16, false)
         ><CloseButton @click="toggleBottomPanel()" class="px-6"
       /></template>
       <TabsContent value="0" class="mt-0 pb-14">
-        <OrbatPanel />
-        <OrbatPanelFooterToolbar class="mt-2" />
+        <DemoMissionOverview v-if="demoOperation" />
+        <template v-else>
+          <OrbatPanel />
+          <OrbatPanelFooterToolbar class="mt-2" />
+        </template>
       </TabsContent>
       <TabsContent value="1" class="mt-0 p-4 pb-10">
         <ScenarioEventsPanel />
