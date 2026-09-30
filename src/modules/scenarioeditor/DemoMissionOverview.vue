@@ -13,6 +13,7 @@ import {
   evaluateExpectations,
   type ExpectationEvaluation,
 } from "@/scenariostore/operationalExpectations";
+import { proposedTotView } from "@/modules/scenarioeditor/operationTimelineProposal";
 import { buildDemoMissionOverview } from "@/modules/scenarioeditor/demoMissionView";
 import {
   evaluationFindingDetail,
@@ -197,6 +198,7 @@ async function evaluateTot() {
     proposed,
     state.operationalClaims ?? [],
   );
+  proposedTotView.value = { missionId: current.missionId, time: proposed };
   await nextTick();
   const node = whatIfResult.value;
   const scroller = node?.closest(".overflow-y-auto");

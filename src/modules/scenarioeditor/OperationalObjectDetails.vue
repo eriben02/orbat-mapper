@@ -29,6 +29,7 @@ import {
   buildDemoMissionOverview,
   isDemoOperation,
 } from "@/modules/scenarioeditor/demoMissionView";
+import { proposedTotView } from "@/modules/scenarioeditor/operationTimelineProposal";
 import PanelTitle from "@/modules/scenarioeditor/PanelTitle.vue";
 import DescriptionItem from "@/components/DescriptionItem.vue";
 
@@ -244,6 +245,7 @@ function evaluateTot() {
     proposed,
     state.operationalClaims ?? [],
   );
+  proposedTotView.value = { missionId: current.id, time: proposed };
 }
 
 function claimTiming(claim: SubjectClaim) {

@@ -14,7 +14,10 @@ import DetailsPanelContent from "@/modules/scenarioeditor/DetailsPanelContent.vu
 import KeyboardScenarioActions from "@/modules/scenarioeditor/KeyboardScenarioActions.vue";
 import ScenarioTimeline from "@/modules/scenarioeditor/ScenarioTimeline.vue";
 import OperationTimeline from "@/modules/scenarioeditor/OperationTimeline.vue";
-import { formatScenarioClock } from "@/modules/scenarioeditor/operationTimelinePlan";
+import {
+  formatScenarioClock,
+  showOperationalTimeline,
+} from "@/modules/scenarioeditor/operationTimelinePlan";
 import UnitBreadcrumbs from "@/modules/scenarioeditor/UnitBreadcrumbs.vue";
 import { useUiStore } from "@/stores/uiStore";
 import { useOverlayBottomInset } from "@/composables/useOverlayBottomInset";
@@ -59,8 +62,8 @@ const emit = defineEmits<{
 
 const ui = useUiStore();
 const scenario = injectStrict(activeScenarioKey);
-const hasOperationalTimeline = computed(
-  () => (scenario.store.state.operationalObjectIds?.length ?? 0) > 0,
+const hasOperationalTimeline = computed(() =>
+  showOperationalTimeline(scenario.store.state.id),
 );
 const scenarioClockText = computed(() =>
   formatScenarioClock(scenario.store.state.currentTime),
